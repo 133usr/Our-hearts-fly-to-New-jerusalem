@@ -29,6 +29,18 @@
 
 
 
+import '../src/style.css'
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
+import gsap from 'gsap'
+// import * as dat from 'dat.gui'
+import { Object3D } from 'three'
+import TWEEN from '@tweenjs/tween.js'
+import { InteractionManager } from 'three.interactive';
+import GUI from 'lil-gui';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+
 
 
 
@@ -38,7 +50,7 @@
 // // The URL on your server where CesiumJS's static files are hosted.
 window.CESIUM_BASE_URL = '/';
 
-import { Cartesian3, createOsmBuildingsAsync, Ion, Math as CesiumMath, Terrain, Viewer,Color } from 'cesium';
+import { Cartesian3, createOsmBuildingsAsync, Ion, Math as CesiumMath, Terrain, Viewer } from 'cesium';
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
 let viewer;
@@ -46,48 +58,53 @@ let airplaneEntity;
 
 function initializeCesium() {
     viewer = new Viewer('cesiumContainer', {
-        animation: false, // Disable animation widget
-        baseLayerPicker: false, // Disable base layer picker
-        fullscreenButton: false, // Disable fullscreen button
-        geocoder: false, // Disable geocoder
-        homeButton: false, // Disable home button
-        infoBox: false, // Disable info box
-        sceneModePicker: false, // Disable scene mode picker
-        selectionIndicator: false, // Disable selection indicator
-        timeline: false, // Disable timeline widget
-        navigationHelpButton: false, // Disable navigation help button
-        navigationInstructionsInitiallyVisible: false // Hide navigation instructions initially
+      animation: false,
+      baseLayerPicker: false,
+      fullscreenButton: false,
+      geocoder: false,
+      homeButton: false,
+      infoBox: false,
+      sceneModePicker: false,
+      selectionIndicator: false,
+      timeline: false
+    });
+    viewer.scene.globe.enableLighting = true;
+
+    // Load the 3D model of the airplane
+    const airplanePosition = Cartesian3.fromDegrees(85.3240, 27.7172, 30000); // Nepal coordinates
+    airplaneEntity = viewer.entities.add({
+        position: airplanePosition,
+        model: {
+            uri: './assets/glb/low-size/cartoon_plane.glb', // Replace with the path to your airplane model
+            scale: 2900.0
+        }
     });
 
-  
-  viewer.scene.globe.enableLighting = true;
+    viewer.zoomTo(viewer.entities); // Zoom to show the airplane
 
-  // Load the 3D model of the airplane
-  const airplanePosition = Cartesian3.fromDegrees(85.3240, 27.7172, 30000); // Nepal coordinates at 30000ft altitude
-  airplaneEntity = viewer.entities.add({
-      position: airplanePosition,
-      model: {
-          uri: './assets/glb/low-size/cartoon_plane.glb', // Replace with the path to your airplane model
-          scale: 100.0,
-          silhouetteColor: Color.RED, // Highlight the airplane silhouette
-          silhouetteSize: 5 // Adjust the size of the silhouette
-      }
+    // Simulate flight when the function is called
+    simulateFlight(0.2); // Change the argument to set the flight percentage (e.g., 0.2 for 20%)
+
+
+    viewer.scene.camera.moveEnd.addEventListener(function() {
+      updateAirplanePosition();
   });
- // Adjusting the near and far planes to avoid clipping
- viewer.scene.camera.frustum.near = 1.0; // Adjust the near plane value
- viewer.scene.camera.frustum.far = 5000000.0; // Adjust the far plane value
 
-  // Focus the camera on the airplane
-  viewer.zoomTo(airplaneEntity);
-
-  // Simulate flight when the function is called
-  simulateFlight(0.2); // Change the argument to set the flight percentage (e.g., 0.2 for 20%)
+  // Optional: Add event listeners for other interactions, such as zoom or click
+  // For example:
+  viewer.scene.postRender.addEventListener(function() {
+      // Check if the globe was zoomed or interacted with and update the airplane's position accordingly
+      updateAirplanePosition();
+  });
 }
+// Function to update the airplane's position based on globe view
+function updateAirplanePosition() {
+  const koreaPosition = Cartesian3.fromDegrees(127.7669, 35.9078, 30000); // Korea coordinates
 
-function simulateFlight(flightPercentage) {
-  const koreaPosition = Cartesian3.fromDegrees(127.7669, 35.9078, 30000); // Korea coordinates at 30000ft altitude
+  // Calculate the intermediate position based on the current camera position
+  const cameraPosition = viewer.camera.positionCartographic;
+  const flightPercentage = calculateFlightPercentage(cameraPosition);
 
-  // Calculate the intermediate position based on the percentage
   const interpolatedPosition = Cartesian3.lerp(
       airplaneEntity.position.getValue(viewer.clock.currentTime),
       koreaPosition,
@@ -97,6 +114,23 @@ function simulateFlight(flightPercentage) {
 
   // Update airplane's position
   airplaneEntity.position.setValue(interpolatedPosition);
+}
+
+// Function to calculate flight percentage based on camera position
+function calculateFlightPercentage(cameraPosition) {
+  // Perform calculations to determine flight percentage based on camera position or other criteria
+  // Example: Use altitude or camera position to calculate flight percentage
+  // Modify this according to your specific logic
+
+  const maxAltitude = 100000; // Example maximum altitude
+  const minAltitude = 5000; // Example minimum altitude
+  const currentAltitude = cameraPosition.height;
+
+  // Calculate flight percentage based on altitude
+  const flightPercentage = (currentAltitude - minAltitude) / (maxAltitude - minAltitude);
+
+  // Ensure the flight percentage remains within bounds (0 to 1)
+  return CesiumMath.clamp(flightPercentage, 0, 1);
 }
 
 initializeCesium(); // Call the initialization function
