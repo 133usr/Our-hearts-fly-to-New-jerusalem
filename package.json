@@ -2,7 +2,7 @@
   "name": "fly_to_mother",
   "version": "1.0.0",
   "repository": {
-    "url": "git+https://github.com/133usr/ThreeJs_Fly_to_Mother.git"
+    "url": "git+https://github.com/133usr/Our-hearts-fly-to-New-jerusalem.git"
   },
   "scripts": {
     "build": "webpack --config ./bundler/webpack.prod.js",
