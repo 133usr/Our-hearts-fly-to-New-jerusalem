@@ -8,7 +8,9 @@ const path = require('path')
 const webpack = require('webpack');
 
 module.exports = {
-    entry: path.resolve(__dirname, '../src/script.js'),
+    entry: {main : path.resolve(__dirname, '../src/script.js'),
+            cesium_glb_animator : path.resolve(__dirname, '../src/cesium_model_animation_player.js'),
+        },
     resolve: {
         fallback: { "https": false, "zlib": false, "http": false, "url": false },
         mainFiles: ['index', 'Cesium']

@@ -28,6 +28,7 @@
 // viewer.scene.primitives.add(buildingTileset);   
 
 
+import { AnimationPlayer, AnimationSet, AnimationParser, LOOP_TYPE } from './cesium_model_animation_player.js';
 
 import '../src/style.css'
 import * as THREE from 'three'
@@ -95,10 +96,10 @@ viewer.timeline.zoomTo(start, stop);
 // Speed up the playback speed 50x.
 viewer.clock.multiplier = 50;
 // Start playing the scene.
-viewer.clock.shouldAnimate = true;
-
+viewer.clock.shouldAnimate = true;  //"longitude":-122.39226,"latitude":37.62048
+const stopLocation = Cesium.Cartesian3.fromDegrees(-122.39226, 37.62048, -27.32);
 // The SampledPositionedProperty stores the position and timestamp for each sample along the radar sample series.
-const positionProperty = new Cesium.SampledPositionProperty();
+let positionProperty = new Cesium.SampledPositionProperty();
 
 for (let i = 0; i < flightData.length; i++) {
     const dataPoint = flightData[i];
@@ -112,17 +113,34 @@ for (let i = 0; i < flightData.length; i++) {
 
     // Set interpolation options for smoother movement
     positionProperty.setInterpolationOptions({
-      interpolationDegree: 9, // Experiment with different degrees (1, 2, 3, etc.)
+      interpolationDegree: 11, // Experiment with different degrees (1, 2, 3, etc.)
       interpolationAlgorithm: Cesium.HermitePolynomialApproximation // Experiment with different algorithms
     });
-
+   
 
     // viewer.entities.add({
     //     description: `Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`,
     //     position: position,
     //     point: { pixelSize: 2, color: Cesium.Color.RED } //remove red dots
     // });
+    
 }
+
+viewer.clock.onTick.addEventListener(function (clock) {
+  const currentPosition = positionProperty.getValue(clock.currentTime);
+  const distanceToStop = Cesium.Cartesian3.distance(currentPosition, stopLocation);
+
+  // console.log("Distance to stop:", distanceToStop);
+
+  // Stop animation when within a certain distance threshold
+  if (distanceToStop < 1.001) {
+    viewer.clock.shouldAnimate = false;
+
+    console.log("Stopped at location");
+  }
+});
+
+
 
 // STEP 6 CODE (airplane entity)
 async function loadModel() {
@@ -140,13 +158,19 @@ orientation: new Cesium.VelocityOrientationProperty(positionProperty),
 path: new Cesium.PathGraphics({ width: 0 }) // to set the path the model will travel to . . . . .
 });
 
-viewer.trackedEntity = airplaneEntity;
+    viewer.trackedEntity = airplaneEntity;
+
+    const response = await fetch('./assets/glb/low-size/cartoon_plane.glb');
+    const blob = await response.blob(); // Convert the response to a Blob
+    const animationSet = await AnimationParser.parseAnimationSetFromFile(blob);
+    const animationPlayer = new AnimationPlayer(animationSet, airplaneEntity, 30); // 30 is FPS
+    animationPlayer.loop_type = LOOP_TYPE.LOOP;
+    animationPlayer.play(); // Start playing the animation
+    animationPlayer.speed = 2.0;
+
 }
 
-
 loadModel();
-
-
 
 
 
