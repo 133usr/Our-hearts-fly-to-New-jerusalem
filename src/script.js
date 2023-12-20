@@ -110,6 +110,13 @@ for (let i = 0; i < flightData.length; i++) {
     // Here we add the positions all upfront, but these can be added at run-time as samples are received from a server.
     positionProperty.addSample(time, position);
 
+    // Set interpolation options for smoother movement
+    positionProperty.setInterpolationOptions({
+      interpolationDegree: 9, // Experiment with different degrees (1, 2, 3, etc.)
+      interpolationAlgorithm: Cesium.HermitePolynomialApproximation // Experiment with different algorithms
+    });
+
+
     // viewer.entities.add({
     //     description: `Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`,
     //     position: position,
@@ -124,14 +131,13 @@ async function loadModel() {
 const airplaneEntity = viewer.entities.add({
     availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
 position: positionProperty,
-// Attach the 3D model instead of the green point.
 model: {
       uri: './assets/glb/low-size/cartoon_plane.glb', // Replace with the path to your airplane model
       scale: 50.0
     },
 // Automatically compute the orientation from the position.
 orientation: new Cesium.VelocityOrientationProperty(positionProperty),
-path: new Cesium.PathGraphics({ width: 3 })
+path: new Cesium.PathGraphics({ width: 0 }) // to set the path the model will travel to . . . . .
 });
 
 viewer.trackedEntity = airplaneEntity;
@@ -139,3 +145,109 @@ viewer.trackedEntity = airplaneEntity;
 
 
 loadModel();
+
+
+
+
+
+
+
+function hideCesiuminfo(){
+  //hide the unwanted additional layers here
+  document.querySelector(".cesium-timeline-bar").hidden = true;
+  document.querySelector(".cesium-viewer-bottom").hidden = true;
+
+}
+hideCesiuminfo();
+
+
+
+
+//https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7Zx1Vnsdizp-ee3wroRGSME9hyu8bUvXWBQWiWf0zNWMJ7z5Wtj0lN52ibU_jg8PEsEWG53VFZ8ee/pub?gid=1246387545&single=true&output=csv
+
+
+
+
+function onComplete(allData){ // When the code completes, do this
+                
+  allData = allData.replace(/[""]+/g,'"'); //dont' know why data has extra ""  so remove them
+  allData = allData.replace('"[{','[{'); //dont' know why data has extra ["  so remove them
+  allData = allData.replace('}]"','}]');     
+  console.log(allData);    
+  var sheet_arrayObject = JSON.parse(allData);
+  // console.log(sheet_arrayObject);
+/**
+* 
+*                  NOW HERE YOU CAN ACCESS THE DATA WITH 
+*                      myobje[i].id
+* 
+*/
+
+
+// myobje.map(x => console.log(x.Id)); to loop it through                     
+
+
+  var participants = Object.keys(sheet_arrayObject).length;
+      // console.log(participants);
+
+          const forLoop = async _ => {
+              console.log("Start");
+              
+              
+             for (let index = 0; index < participants; index++) {
+              var tempsheetObject = sheet_arrayObject[index]
+              let groupType = sheet_arrayObject[index].group;
+              
+              if (groupType != "Group")
+              //  await myPromise(tempsheetObject);     //****************very important Uncomment this to run */
+              
+               if (groupType == "Group")
+               {//only run for Group score
+                  // await myPromise2(tempsheetObject);  //****************very important Uncomment this to run */
+                }
+              
+              }
+              
+             console.log("End");
+             
+             };
+             forLoop();
+
+
+         
+      // }
+
+  //   var  str = JSON.stringify(modelGlb[2]);
+  //     str = JSON.stringify(modelGlb[2], null, 4); // (Optional) beautiful indented output.
+  //     console.log(str);
+// console.log(result)
+
+}
+
+
+
+
+loadData()
+function loadData (){
+    let result; 
+    // ========================================================================================================================================================================================
+ 
+    let url ="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7Zx1Vnsdizp-ee3wroRGSME9hyu8bUvXWBQWiWf0zNWMJ7z5Wtj0lN52ibU_jg8PEsEWG53VFZ8ee/pub?gid=1246387545&single=true&output=csv&range=C3"          
+                  fetch(url) 
+                  .then(response => response.text())
+                  .then(text => { //what to do with result?
+                   result = text; 
+                   onComplete(result);
+                }); 
+                }
+
+  function getAllData(allData)
+        {   allData = allData.replace(/[""]+/g,'"'); //dont' know why data has extra ""  so remove them
+        allData = allData.replace('"[{','[{'); //dont' know why data has extra ["  so remove them
+        allData = allData.replace('}]"','}]'); 
+        
+            var myobje = JSON.parse(allData);
+            console.log(myobje[1].Id);
+            // myobje.map(x => console.log(x.Id)); to loop it through                     
+            
+        }    
