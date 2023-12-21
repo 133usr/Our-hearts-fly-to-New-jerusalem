@@ -54,6 +54,43 @@ import * as Cesium from 'cesium';
 import { Cartesian3, IonImageryProvider, Ion, Math as CesiumMath, Terrain, Viewer } from 'cesium';
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
+
+
+//   migrate from dat ui to https://lil-gui.georgealways.com/#Guide#Installation
+const gui = new GUI({
+  closeFolders : true,
+  autoPlace: true, //autoPlace - Adds the GUI to document.body and fixes it to the top right of the page.
+  title: 'Participants',
+
+  
+
+}); 
+ 
+
+var a_br_folder = gui.addFolder('Adult Brothers');
+var a_sis_folder = gui.addFolder('Adult Sisters');
+var y_br_folder = gui.addFolder('Youth & Stud. Brothers');
+var y_sis_folder = gui.addFolder('Youth & Stud. Sisters');
+var group_folder = gui.addFolder('By Group');
+
+var a_br_folder_group1 = a_br_folder.addFolder('Group1');
+var a_br_folder_group2 = a_br_folder.addFolder('Group2');
+var a_sis_folder_group1 = a_sis_folder.addFolder('Group1');
+var a_sis_folder_group2 = a_sis_folder.addFolder('Group2');
+var a_sis_folder_group3 = a_sis_folder.addFolder('Group3');
+//   var y_br_folder_group2 = a_br_folder.addFolder('Group2');
+const scoreBoard = {
+    
+	Scoreboard: function() { window.location.href = './scoreboard_code/score_board.html' }
+}
+    gui.add(scoreBoard,'Scoreboard');
+
+
+
+
+
+
+
 let airplaneEntity;
 
 const  viewer = new Cesium.Viewer('cesiumContainer', {
@@ -64,6 +101,7 @@ const  viewer = new Cesium.Viewer('cesiumContainer', {
   homeButton: false,
   infoBox: false,
   sceneModePicker: false,
+  
   // timeline: false
   });
 
@@ -96,22 +134,16 @@ viewer.timeline.zoomTo(start, stop);
 // Speed up the playback speed 50x.
 viewer.clock.multiplier = 50;
 // Start playing the scene.
-viewer.clock.shouldAnimate = true;  //"longitude":-122.39226,"latitude":37.62048
+viewer.clock.shouldAnimate = true;  
 const stopLocation = Cesium.Cartesian3.fromDegrees(-122.39226, 37.62048, -27.32);
 // The SampledPositionedProperty stores the position and timestamp for each sample along the radar sample series.
 let positionProperty = new Cesium.SampledPositionProperty();
 
 for (let i = 0; i < flightData.length; i++) {
     const dataPoint = flightData[i];
-
-    // Declare the time for this individual sample and store it in a new JulianDate instance.
     const time = Cesium.JulianDate.addSeconds(start, i * timeStepInSeconds, new Cesium.JulianDate());
     const position = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
-    // Store the position along with its timestamp.
-    // Here we add the positions all upfront, but these can be added at run-time as samples are received from a server.
     positionProperty.addSample(time, position);
-
-    // Set interpolation options for smoother movement
     positionProperty.setInterpolationOptions({
       interpolationDegree: 11, // Experiment with different degrees (1, 2, 3, etc.)
       interpolationAlgorithm: Cesium.HermitePolynomialApproximation // Experiment with different algorithms
@@ -153,7 +185,6 @@ model: {
       uri: './assets/glb/low-size/cartoon_plane.glb', // Replace with the path to your airplane model
       scale: 50.0
     },
-// Automatically compute the orientation from the position.
 orientation: new Cesium.VelocityOrientationProperty(positionProperty),
 path: new Cesium.PathGraphics({ width: 0 }) // to set the path the model will travel to . . . . .
 });
@@ -197,7 +228,7 @@ function onComplete(allData){ // When the code completes, do this
   allData = allData.replace(/[""]+/g,'"'); //dont' know why data has extra ""  so remove them
   allData = allData.replace('"[{','[{'); //dont' know why data has extra ["  so remove them
   allData = allData.replace('}]"','}]');     
-  console.log(allData);    
+  // console.log(allData);    
   var sheet_arrayObject = JSON.parse(allData);
   // console.log(sheet_arrayObject);
 /**
@@ -212,7 +243,7 @@ function onComplete(allData){ // When the code completes, do this
 
 
   var participants = Object.keys(sheet_arrayObject).length;
-      // console.log(participants);
+      console.log(participants);
 
           const forLoop = async _ => {
               console.log("Start");
@@ -223,7 +254,7 @@ function onComplete(allData){ // When the code completes, do this
               let groupType = sheet_arrayObject[index].group;
               
               if (groupType != "Group")
-              //  await myPromise(tempsheetObject);     //****************very important Uncomment this to run */
+               await myPromise(tempsheetObject);     //****************very important Uncomment this to run */
               
                if (groupType == "Group")
                {//only run for Group score
@@ -239,7 +270,7 @@ function onComplete(allData){ // When the code completes, do this
 
 
          
-      // }
+      
 
   //   var  str = JSON.stringify(modelGlb[2]);
   //     str = JSON.stringify(modelGlb[2], null, 4); // (Optional) beautiful indented output.
@@ -251,7 +282,467 @@ function onComplete(allData){ // When the code completes, do this
 
 
 
-loadData()
+
+
+
+
+
+
+
+
+
+
+
+
+
+const myPromise = tempsheetObject => {
+  // Perform some asynchronous operation
+  // If the operation is successful, call the resolve function with the result
+  // If the operation fails, call the reject function with the error
+  var all_models = [ //['number','name','url','scale','pos.x','pos.y','rot.x','rot.y','rot.z','object with X and Y exchnge?'] IF true THEN SCORE SHOULD BE pos.x
+  ['1','Bird2',     './assets/glb/low-size/low_poly_bird.glb', '7', '500','1','0','4.6','0','false'], 
+  ['2','Yellow Cartoon Plane',    "./assets/glb/low-size/cartoon_plane.glb",          '4', '300','1','0','','0','false'],
+  ['3','White Cartoon Plane','./assets/glb/low-size/cartoon_Plane_white.glb',   '4', '300','1','0','','0','false'],
+  ['5','Butterfly',       './assets/glb/low-size/animated_butterfly.glb',     '4', '400','1','0','4.2','0','false'],
+  ['6','SimpleBird',      './assets/glb/low-size/simple_bird.glb',            '3','-200','1','0','1.5','0','false'], 
+  ['7','LowPolyBird',     './assets/glb/low-size/low_poly_bird_animated.glb', '4', '500','1','0','4.6','0','false'], 
+  ['8','LowPolyHumming',  './assets/glb/low-size/lowpoly_humming-bird.glb',   '4', '1','9','0','4.2','0','true'], 
+  ['9','BirdFlig',        './assets/glb/low-size/bird_flight_animation.glb',  '0.2', '1','9','0','4.2','0','true'],
+  ['10','Good Bird',        './assets/glb/low-size/good_bird.glb',  '0.2', '1','9','0','4.2','0','true'],
+  ['11','Angel',        './assets/glb/low-size/purgatory_angel_blue.glb',  '0.2', '1','9','0','4.2','0','true'],
+  ['12','LowPolyEagle',   './assets/glb/low-size/low_poly_eagle.glb',         '0.9', '100','9','0','4.7','0','true'],
+  ['13','Pink Angel',        './assets/glb/low-size/purgatory_angel_pink.glb',  '0.2', '1','9','0','4.2','0','true'],
+  ['14','White Angel',        './assets/glb/low-size/purgatory_angel_white.glb',  '0.2', '1','9','0','4.2','0','true'],
+  ['15','Stylized Falcon','./assets/glb/low-size/stylized_falcon.glb',          '0.02', '1','9','0','','0','false'],
+  ['16','Blue Angel',        './assets/glb/low-size/purgatory_angel_blue.glb',  '0.2', '1','9','0','4.2','0','true']
+ 
+  ];
+  
+  let search = tempsheetObject.character;         // desired character
+  // console.log(search);
+  var arr = all_models.filter( function( el ) {   //to find the string in 2d array then return whole index
+      return !!~el.indexOf( search );                     // find the desired character in array
+  } );
+  var objectFilename = arr[0][2]; //url Of chosed Object ENABLE THIS !! already chosed the model with "return !!~el.indexof(search)"
+  let objectscale = arr[0][3];    // arr is the selected model by user
+  var i = tempsheetObject.Id;
+  var actual_total_score = tempsheetObject.Total;
+
+  var age_group = tempsheetObject.group;
+  var name_participant = tempsheetObject.Participant;
+ 
+  // console.log('object File:: '+objectFilename);                                                          
+  let modelGlb_source = [];
+  modelGlb_source[i]= objectFilename;
+
+             
+                  loader2.load(modelGlb_source[i],function(glb){
+                  modelGlb [i]= glb.scene;
+                  
+               
+                 modelGlb[i].scale.set(objectscale,objectscale,objectscale);
+
+              let y_position = Math.random() * 500+ 1;
+                 modelGlb[i].position.set(distance_travel_score_X,y_position,distance_travel_score_Z); 
+                  interactionManager.add(modelGlb[i]);
+                  modelGlb[i].addEventListener('click', (event) => {
+                      var root = modelGlb[i];
+                          const box = new THREE.Box3().setFromObject(root);
+                          const boxSize = box.getSize(new THREE.Vector3()).length();
+                          const boxCenter = box.getCenter(new THREE.Vector3());
+                          console.log('interaction manager trig');
+                          // set the camera to frame the box
+                          frameArea(boxSize * 2, boxSize, boxCenter, camera,tempsheetObject,root);
+                  });
+                  
+              
+                  const selectedColors = ['#FF0000', '#008040', '#0000a4', '#FFFF00', '#d500d5', '#31ca98',"#FFFFFF","#FFA500"];
+      
+                  // Usage:
+                  const randomColor = getRandomColorFromArray(selectedColors);
+
+                  const fontLoader = new FontLoader(); 
+'color:#008040"'
+                  // fontLoader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+                  var config1 = {
+                      fontFace: 'Ariel',
+                      fontSize: 32,
+                      fontColor: '#FFFFFF',
+                      fontBold: false,
+                      fontItalic: false,
+                      textAlign: 'center',
+                      borderThickness: 0,
+                      borderColor: 'rgba(0, 0, 0, 0)',
+                      borderRadius: 0,
+                      backgroundColor: 'rgba(0, 0, 0, 0)'
+                  };
+                  let message  = [name_participant];
+                  spriteText[i]  = generateTextSprite(message.join('\n'), config1);
+                 
+                  // });
+                  spriteText[i].position.set(distance_travel_score_X+0,5,distance_travel_score_Z);
+                  //angel text needs to be above
+                  if(search.includes('Angel'))
+                  {console.log('containts'); spriteText[i].position.set(distance_travel_score_X+0,55,distance_travel_score_Z);}
+
+                  scene.add(modelGlb[i])
+                  scene.add(spriteText[i])
+
+
+
+// console.log(distance_travel_score_X,distance_travel_score_Z);
+                  //animation things
+                  abc[i] = modelGlb[i].children[0];
+                  const mixer = new THREE.AnimationMixer(abc[i]);
+                  mixer.clipAction(glb.animations[0]).play();
+                  mixers.push(mixer);
+                  // console.log(i)
+                  model_OrbitPath[i] = new Ellipse( distance_travel_score_X, distance_travel_score_Z );
+
+                  let random_1 = Math.random() * 0.000001 + 0.000005;
+                  let random_2 = Math.random() * 0.000002 + 0.000006;
+
+                  model_OrbitSpeed[i] = Math.random() * random_1 + random_2;
+                  /**
+                   * ADD BUTTONS TO GUI
+                   */
+                  
+                  //for GUI
+                  var camerOnClick = {
+                             [name_participant]: function () {
+                              //first collapse all folders
+                              gui.close(true);
+                      
+                               //remove box
+                              var container = document.querySelectorAll("container")[0];
+                              if(container != null)
+                              {
+                                  // console.log('not')
+                              document.querySelectorAll("container")[0].remove();}
+                              var root = modelGlb[i];
+                              // compute the box that contains all the stuff
+                              // from root and below
+                              const box = new THREE.Box3().setFromObject(root);
+                              const boxSize = box.getSize(new THREE.Vector3()).length();
+                              const boxCenter = box.getCenter(new THREE.Vector3());
+                              
+                              // set the camera to frame the box
+
+                              frameArea(boxSize * 2, boxSize, boxCenter, camera,tempsheetObject,root);
+                              
+                            }
+
+                  };
+
+                  //a var for orbit control
+                  
+
+                   always_Zero[i] = 0;
+
+                      
+              //    console.log("age group is :"+age_group);
+                  if(age_group==='Adult Brother1')
+                  a_br_folder_group1.add(camerOnClick, name_participant );
+
+                  else if(age_group==='Adult Brother2')
+                  a_br_folder_group2.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Ruth')
+                  a_sis_folder_group1.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Sarah')
+                  a_sis_folder_group2.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Esther')
+                  a_sis_folder_group3.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Youth Brother')
+                  y_br_folder.add(camerOnClick, name_participant);
+                  
+                  else if(age_group==='Youth Sister')
+                  y_sis_folder.add(camerOnClick, name_participant);
+
+                  
+
+                  // collapse folder1
+                  // folder1.close();
+
+
+              }); 
+              
+              // return resolve;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//my promise2 
+{
+
+// const myPromise2 = tempsheetObject => {
+//   // Perform some asynchronous operation
+//   // If the operation is successful, call the resolve function with the result
+//   // If the operation fails, call the reject function with the error
+//   var all_models2 = [ //['number','name','url','scale','pos.x','pos.y','rot.x','rot.y','rot.z','object with X and Y exchnge?'] IF true THEN SCORE SHOULD BE pos.x
+//   ['1','BirdsBlack',   './assets/glb/forGroup/birds_black.glb',         '25', '0','4','10','','0','false'],
+//   ['2','BirdsBrown',   './assets/glb/forGroup/birds_brown.glb',         '25', '0','8','10','','0','false'],
+//   ['3','BirdsGreen',   './assets/glb/forGroup/birds_greens.glb',         '25', '0','12','10','','0','false'],
+//   ['4','BirdsLightBlue',   './assets/glb/forGroup/birds_lightBlue.glb',  '25', '0','16','0','','0','false'],
+//   ['8','BirdsMagenta',   './assets/glb/forGroup/birds_magenta.glb',      '25', '0','1','0','','0','false'],
+//   ['6','BirdsPink',   './assets/glb/forGroup/birds_pink.glb',             '25', '0','-6','0','','0','false'],
+//   ['7','BirdsRed',   './assets/glb/forGroup/birds_red.glb',               '25', '0','-8','0','','0','false'],
+//   ['8','BirdsYellow',   './assets/glb/forGroup/birds_yellow.glb',        '25', '8','2','0','','0','false'],
+
+//   ];
+//   let search = tempsheetObject.character; 
+//   // console.log(search);        // desired character
+//   var arr = all_models2.filter( function( el ) {   //to find the string in 2d array then return whole index
+//       return !!~el.indexOf( search );                     // find the desired character in array
+//   } );
+//   var objectFilename = arr[0][2]; //url Of chosed Object ENABLE THIS !! already chosed the model with "return !!~el.indexof(search)"
+//   let objectscale = arr[0][3];    // arr is the selected model by user
+//   let objectYpos = arr[0][5];
+//   var i = tempsheetObject.Id;
+//   // console.log(tempsheetObject);
+//   // console.log('Model Name:: '+all_models2[i][1]);
+  
+//   // let objectPos_X = all_models2[i][4];
+//   // let objectPos_Y = all_models2[i][5];
+//   // let objectRot_X = arr[0][6];
+//   // let objectRot_Y = arr[0][7];
+//   // let objectRot_Z = arr[0][8];
+
+//   var actual_total_score = tempsheetObject.Total;
+
+// /**
+// * ACCORDING TO GOOGLE SHEETS TOTAL IS 70000 AND MAX ZOOM OUT 3500 
+// * WHICH IS 20X OF TOTAL SO 
+// * WE HAVE TO DIVIDE THE TOTAL SCORE FROM 20 
+// * BUT WHEN YOU SHOW THE SCORE IT SHOULD BE AS IT IS
+// * 
+// * NOW
+// * X AND Y BOTH MOVE THE CHARACTER SO ONE SHOULD BE IN NEGATIVE AND ONE SHOULD BE POSITIVE WITH SAME VALUES
+// */  let divide_by_number_of_members;   
+//   let number_of_memb_in_group =tempsheetObject.Group_total;  
+//     let distance_travel_score_X = actual_total_score;
+//   //   distance_travel_score_X = 60000;
+//   let distance_travel_score_Z;
+//   let random_distance_Z;
+//   if(distance_travel_score_X<20){
+//       distance_travel_score_X =  5500;
+//       distance_travel_score_Z = -5500;    
+
+//       }else{
+//           divide_by_number_of_members = distance_travel_score_X/number_of_memb_in_group;    //only for group
+//           distance_travel_score_X = distance_travel_score_X/20;
+//           distance_travel_score_X = 5500-distance_travel_score_X;
+//           // console.log(distance_travel_score_X);
+//           distance_travel_score_Z = -Math.abs(distance_travel_score_X);
+//           random_distance_Z       = randomGenerator(distance_travel_score_Z,distance_travel_score_X);
+
+//           // console.log("distance_travel_score for "+tempsheetObject.Participant+" and Y is: "+distance_travel_score_X+"   "+distance_travel_score_Z);
+//       }
+
+
+//   var age_group = tempsheetObject.group;
+//   var name_participant = tempsheetObject.Participant;
+                                                       
+//   let modelGlb_source = [];
+//   modelGlb_source[i]= objectFilename;
+
+             
+//                   loader3.load(modelGlb_source[i],function(glb){
+//                   modelGlb_Group [i]= glb.scene;
+                  
+               
+//                    modelGlb_Group[i].scale.set(objectscale,objectscale,objectscale);
+//                    const target = new THREE.Vector3(80, 0,-90);
+//                   modelGlb_Group[i].lookAt(target);
+//                   // let randomPos_Z = Math.random() * 15 + 5;
+//                   let randomPos_Z_scoreCard = Math.random() * 60 - 20;
+//                   modelGlb_Group[i].position.set(distance_travel_score_X,objectYpos,distance_travel_score_Z); 
+
+//                   interactionManager.add(modelGlb_Group[i]);
+//                   modelGlb_Group[i].addEventListener('click', (event) => {
+//                       var root = modelGlb_Group[i];
+//                           const box = new THREE.Box3().setFromObject(root);
+//                           const boxSize = box.getSize(new THREE.Vector3()).length();
+//                           const boxCenter = box.getCenter(new THREE.Vector3());
+//                           console.log('interaction manager trig');
+//                           // set the camera to frame the box
+//                           frameArea2(boxSize * 2, boxSize, boxCenter, camera,tempsheetObject,root);
+//                   });
+                  
+//                   gsap.to( modelGlb_Group[i].position, {
+//                       duration: 4,
+//                       y: Math.random() * 20 - 5,
+                      
+//                       // z: 2.5 ,
+//                       repeat: -1,
+//                       yoyo: true,
+//                       ease: 'power3.inOut'
+//                   });  
+//                   gsap.to( modelGlb_Group[i].position,  {
+//                       duration: 4,
+//                       // y: -8,
+                      
+//                       // yoyo: true,
+//                       // repeat: 1,
+//                       ease: 'power3.inOut'
+//                   });
+//                ;
+// // //for text           
+//                   var group_Name = tempsheetObject.Participant;
+//                   var preach      = tempsheetObject.totalPreach/8;
+//                   var m_Preach    = tempsheetObject.totalPreach_m/5;
+//                   var fruits       = tempsheetObject.totalFruits;
+//                                       if(fruits>0)
+//                                       {fruits = tempsheetObject.totalFruits/500}
+                                      
+//                   var total_score = tempsheetObject.Total;
+//                   var elohim_aca  = ((tempsheetObject.totalSign/5)+(tempsheetObject.chap_complete/20));
+//                   // / Array of selected colors
+
+//                   const selectedColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#ff00ff', '#00FFFF',"#FFFFFF","#FFA500"];
+                  
+//                   // Usage:
+//                   const randomColor = getRandomColorFromArray(selectedColors);
+
+                  
+// // Font loading is complete, and you can use the font in your Three.js scene
+// // Create your Three.js objects and apply the loaded font
+
+//                   var config1 = {
+//                       fontFace: 'Ariel',
+//                       fontSize: 36,
+//                       fontColor: 'rgba(255, 255, 255, 1)',
+//                       fontBold: false,
+//                       fontItalic: false,
+//                       textAlign: 'center',
+//                       borderThickness: 8,
+//                       borderColor: randomColor,
+//                       borderRadius: 10,
+//                       backgroundColor: 'rgba(0, 0, 0, 0.8)'
+//                   };
+//                   let message  = [group_Name,"साधा. प्रचार: "+preach,"अ‍र्थ प्रचार: "+m_Preach,"फल: "+fruits,"एलो अकादमी: "+elohim_aca];
+//                   spriteText2[i]  = generateTextSprite(message.join('\n'), config1);
+//                   spriteText2[i].position.set(distance_travel_score_X+randomPos_Z_scoreCard,objectYpos,distance_travel_score_Z);
+//                   const group = new THREE.Group();
+//                   group.add(modelGlb_Group[i]);
+//                   group.add(spriteText2[i]);
+//                   scene.add(group)
+        
+//                   //animation things
+//                   abc2[i] = modelGlb_Group[i].children[0];
+//                   const mixer = new THREE.AnimationMixer(abc2[i]);
+//                   mixer.clipAction(glb.animations[0]).play();
+//                   mixers.push(mixer);
+                  
+//                   /**
+//                    * ADD BUTTONS TO GUI
+//                    */
+                  
+//                   //for GUI
+//                   var camerOnClick = {
+//                              [name_participant]: function () {
+//                               //first collapse all folders
+//                               gui.close(true);
+                             
+//                                //remove box
+//                               var container = document.querySelectorAll("container")[0];
+//                               if(container != null)
+//                               {
+//                                   // console.log('not')
+//                               document.querySelectorAll("container")[0].remove();}
+//                               var root = modelGlb_Group[i];
+//                               // compute the box that contains all the stuff
+//                               // from root and below
+//                               const box = new THREE.Box3().setFromObject(root);
+//                               const boxSize = box.getSize(new THREE.Vector3()).length();
+//                               const boxCenter = box.getCenter(new THREE.Vector3());
+                              
+//                               // set the camera to frame the box
+
+//                               frameArea2(boxSize * 2, boxSize, boxCenter, camera,tempsheetObject,root);
+                              
+//                             }
+
+//                   };
+
+//                   if(age_group==='Group')
+//                   group_folder.add(camerOnClick, name_participant);
+//               }); 
+              
+//               // return resolve;
+// };
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+loadData();
 function loadData (){
     let result; 
     // ========================================================================================================================================================================================
