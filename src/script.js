@@ -14,7 +14,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
 import gsap from 'gsap'
 // import * as dat from 'dat.gui'
 import { Object3D } from 'three'
-import Tween from '@tweenjs/tween.js'
+import TWEEN from '@tweenjs/tween.js'
 import { InteractionManager } from 'three.interactive';
 import GUI from 'lil-gui';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
@@ -38,15 +38,16 @@ import scoreData from './scoredata.json';
 
 
     async function main() {
-      try {
+      
         let allData = await fetchData();
               
         allData = allData.replace(/[""]+/g,'"'); //dont' know why data has extra ""  so remove them
         allData = allData.replace('"[{','[{'); //dont' know why data has extra ["  so remove them
         allData = allData.replace('}]"','}]');     
-        // console.log(allData);    
+        // console.log(allData);  
+        var sheet_arrayObject = JSON.parse(allData);  
         var participants = Object.keys(sheet_arrayObject).length;
-        var sheet_arrayObject = JSON.parse(allData);
+        
         // console.log(s);
       
 
@@ -112,15 +113,21 @@ import scoreData from './scoredata.json';
             gui.add(scoreBoard,'Scoreboard');
 
 
+            const flightData2 = JSON.parse(
+              '[{"longitude":-122.39053,"latitude":37.61779,"height":-27.32},{"longitude":-122.39035,"latitude":37.61803,"height":-27.32},{"longitude":-122.39019,"latitude":37.61826,"height":-27.32},{"longitude":-122.39006,"latitude":37.6185,"height":-27.32},{"longitude":-122.38985,"latitude":37.61864,"height":-27.32},{"longitude":-122.39005,"latitude":37.61874,"height":-27.32},{"longitude":-122.39027,"latitude":37.61884,"height":-27.32},{"longitude":-122.39057,"latitude":37.61898,"height":-27.32},{"longitude":-122.39091,"latitude":37.61912,"height":-27.32}]');
 
 
-
-
+              const flightData = [
+                { "longitude": -122.39053, "latitude": 37.61779, "height": -27.32, "time": 0 },
+                { "longitude": -122.39035, "latitude": 37.61803, "height": -27.32, "time": 3 },
+                // Add more coordinates as needed, each with a 'time' attribute in seconds
+              ];
 
         let airplaneEntity;
 
         const  viewer = new Cesium.Viewer('cesiumContainer', {
           animation: false,
+          shouldAnimate: true, // Ensure animation is enabled
           baseLayerPicker: false,
           fullscreenButton: false,
           geocoder: false,
@@ -139,7 +146,11 @@ import scoreData from './scoredata.json';
 
 
 
-
+        flightData.forEach(({ longitude, latitude, height }) => {
+          const time = Cesium.JulianDate.now(); // You might need to adjust the time for each sample
+          const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+          positionProperty.addSample(time, position);
+        });
 
 
 
@@ -155,53 +166,38 @@ import scoreData from './scoredata.json';
 
 
 
-
-
-
         // Initialize camerOnClick object
 
         const loadedModels = {};
 
         const loadModels = async (tempsheetObject) => {
-          const suratPosition = Cesium.Cartesian3.fromDegrees(21.1702, 72.8311,1000); // Surat, India
-        const mumbaiPosition = Cesium.Cartesian3.fromDegrees(23.0760, 72.8777,1000); // Mumbai, India
-        const mumbaiPosition2 = Cesium.Cartesian3.fromDegrees(23.0760, 72.8777,2000); // Mumbai, India
-        const mumbaiPosition3 = Cesium.Cartesian3.fromDegrees(23.0760, 72.8777,3000); // Mumbai, India
-        const mumbaiPosition4 = Cesium.Cartesian3.fromDegrees(23.0760, 72.8777,4000); // Mumbai, India
-        const ahmedabadPosition = Cesium.Cartesian3.fromDegrees(23.0225, 72.5714,1000); // Ahmedabad, India
-        const vadodaraPosition = Cesium.Cartesian3.fromDegrees(22.3072, 73.1812,1000); // Vadodara, India
-        const rajkotPosition = Cesium.Cartesian3.fromDegrees(22.3039, 70.8022,1000); // Rajkot, India
-
-
-        
+             
             const objectFilename = './assets/glb/low-size/cartoon_plane.glb';
-          // Scale of the selected model
-              // const start = Cesium.JulianDate.fromIso8601("2020-03-09T23:10:00Z");
-              // const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
-
-              // Create function to load a single model
+         
               const loadModel = async () => {
-                
-                const airplaneEntity = viewer.entities.add({
+                // positionProperty =  ;
+                let airplaneEntity = viewer.entities.add({
                   // availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({ start, stop })]),
-                  position: positionProperty,
+                  // position: Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height),
                   model: {
                     uri: objectFilename,
                     scale: 50
                   },
-                  orientation: new Cesium.VelocityOrientationProperty(positionProperty),
-                  path: new Cesium.PathGraphics({ width: 0 })
+                  position: Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height) // Initial position
+ 
+                 
                   
                 });
                 var id = tempsheetObject.Id;
-                if(id ==2)airplaneEntity.position = mumbaiPosition2;
-                if(id ==3)airplaneEntity.position = mumbaiPosition;
-                if(id ==4)airplaneEntity.position = mumbaiPosition3;
-                if(id ==5)airplaneEntity.position = mumbaiPosition4;
-                if(id ==6)airplaneEntity.position = rajkotPosition;
-                
+               
+                animateModel(airplaneEntity);
               // Assign an ID to the loaded model entity
               loadedModels[id] = airplaneEntity;
+                                
+              
+
+
+              
                 // Fetch and parse animation data
                 const response = await fetch(objectFilename);
                 const blob = await response.blob();
@@ -217,7 +213,10 @@ import scoreData from './scoredata.json';
             await loadModel();
             var age_group = tempsheetObject.group;
             var name_participant = tempsheetObject.Participant;
-          
+            
+ 
+            
+              console.log(" ");
               
               // Define a function inside the object
             // const camerOnClick = {
@@ -248,16 +247,53 @@ import scoreData from './scoredata.json';
 
     onComplete(sheet_arrayObject);
 
+
+    function animateModel(modelEntity) {
+      for (let i = 1; i < flightData.length; i++) {
+        const startPosition = Cesium.Cartesian3.fromDegrees(flightData[i - 1].longitude, flightData[i - 1].latitude, flightData[i - 1].height);
+        const endPosition = Cesium.Cartesian3.fromDegrees(flightData[i].longitude, flightData[i].latitude, flightData[i].height);
+        const duration = (flightData[i].time - flightData[i - 1].time) * 5000; // Time in milliseconds
+
+        // Use Tween.js to animate the model's position
+        new TWEEN.Tween({ x: startPosition.x, y: startPosition.y, z: startPosition.z })
+          .to({
+            x: endPosition.x,
+            y: endPosition.y,
+            z: endPosition.z
+          }, duration)
+          .easing(TWEEN.Easing.Linear.None)
+          .onUpdate(function(obj) {
+            modelEntity.position = new Cesium.Cartesian3(obj.x, obj.y, obj.z); // Update the model's position
+            console.log(modelEntity.position);
+          })
+          .start();
+      }
+    }
+ // Update Tween.js
+ function animate() {
+  requestAnimationFrame(animate);
+  TWEEN.update();
+}
+animate();
+
+        // Start the model animation using tweens
+       
+
+
+
+
+
+
+
+
+
     /**************************************************************
      *                                                           *
      *                   MAIN FUNCTION  ENDS NOW                 *
      *                                                           *
      **************************************************************/
 
-        } catch (error) {
-          // Handle errors if needed
-          console.log("err "+error);
-        }
+        
 }
 
 
