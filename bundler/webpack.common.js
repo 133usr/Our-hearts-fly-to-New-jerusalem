@@ -54,7 +54,12 @@ module.exports = {
                 test: /\.(html)$/,
                 use: ['html-loader']
             },
-
+            //JSON
+            {
+                test: /\.json$/,
+                loader: 'json-loader',
+                type: 'javascript/auto' // This line might be needed for newer versions of Webpack
+              },
             // JS
             {
                 test: /\.js$/,
