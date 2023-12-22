@@ -369,14 +369,14 @@ export class AnimationParser {
     let dv = new DataView(array_buffer, 12, 4);
     // don't forget to set little-endian = true when parsing from data view (gltf standard!)
     let json_chunk_length = dv.getUint32(0, true);
-    console.log("gltf JSON length: " + json_chunk_length + " bytes");
+    // console.log("gltf JSON length: " + json_chunk_length + " bytes");
 
     // get the actual JSON data itself
     let json_data_chunk = array_buffer.slice(20, 20+json_chunk_length);
     let decoder = new TextDecoder('UTF-8');
     let json_text = decoder.decode(json_data_chunk);
     let gltf_json = JSON.parse(json_text);
-    console.log("gltf JSON loaded successfully:");
+    // console.log("gltf JSON loaded successfully:");
 
     // store links to parent nodes
     for(var i = 0; i < gltf_json.nodes.length; i++) {
@@ -397,21 +397,21 @@ export class AnimationParser {
     let dv = new DataView(array_buffer, 12, 4);
     // don't forget to set little-endian = true when parsing from data view (gltf tandard!)
     let json_chunk_length = dv.getUint32(0, true);
-    console.log("gltf JSON length: " + json_chunk_length + " bytes");
+    // console.log("gltf JSON length: " + json_chunk_length + " bytes");
 
     // get the actual JSON data itself
     let json_data_chunk = array_buffer.slice(20, 20+json_chunk_length);
     let decoder = new TextDecoder('UTF-8');
     let json_text = decoder.decode(json_data_chunk);
     let gltf_json = JSON.parse(json_text);
-    console.log("gltf JSON loaded successfully:");
-    console.log(gltf_json);
+    // console.log("gltf JSON loaded successfully:");
+    // console.log(gltf_json);
 
     // get the length of the gltf embedded binary data
     let bin_offset = 20+json_chunk_length;
     dv = new DataView(array_buffer, bin_offset, 4);
     let bin_chunk_length = dv.getUint32(0, true);
-    console.log("gltf bin length: " + bin_chunk_length + " bytes");
+    // console.log("gltf bin length: " + bin_chunk_length + " bytes");
 
     // get the actual binary data, we add 8 to get past the "type" and "chunk length" headers
     let bin_data_chunk = array_buffer.slice(bin_offset + 8, bin_offset + 8 + bin_chunk_length);
@@ -426,7 +426,7 @@ export class AnimationParser {
       if(typeof anim_name == 'undefined' || anim_name == "")
         anim_name = "animation_" + i;
       let curr_animation = new Animation(anim_name);
-      console.log("processing animation: " + anim_name);
+      // console.log("processing animation: " + anim_name);
 
       for(var k = 0; k < gltf_json.animations[i].channels.length; k++) {
         let channel = gltf_json.animations[i].channels[k];
@@ -581,7 +581,7 @@ export class AnimationParser {
     }
 
     let animations = AnimationParser.parseAnimationsFromArrayBuffer(array_buffer);
-    console.log(nodes_dict);
+    // console.log(nodes_dict);
     return new AnimationSet(animations, nodes_dict);
   }
 };
