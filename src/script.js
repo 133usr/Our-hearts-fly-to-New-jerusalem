@@ -113,11 +113,11 @@ import scoreData from './scoredata.json';
             gui.add(scoreBoard,'Scoreboard');
 
 
-            const flightData2 = JSON.parse(
-              '[{"longitude":-122.39053,"latitude":37.61779,"height":-27.32},{"longitude":-122.39035,"latitude":37.61803,"height":-27.32},{"longitude":-122.39019,"latitude":37.61826,"height":-27.32},{"longitude":-122.39006,"latitude":37.6185,"height":-27.32},{"longitude":-122.38985,"latitude":37.61864,"height":-27.32},{"longitude":-122.39005,"latitude":37.61874,"height":-27.32},{"longitude":-122.39027,"latitude":37.61884,"height":-27.32},{"longitude":-122.39057,"latitude":37.61898,"height":-27.32},{"longitude":-122.39091,"latitude":37.61912,"height":-27.32}]');
+            const flightData = JSON.parse(
+              '[{"longitude":-122.39053,"latitude":37.61779,"height":-27.32},{"longitude":-122.39035,"latitude":37.61803,"height":-27.32},{"longitude":-122.39019,"latitude":37.61826,"height":-27.32},{"longitude":-122.39006,"latitude":37.6185,"height":-27.32},{"longitude":-122.38985,"latitude":37.61864,"height":-27.32},{"longitude":-122.39005,"latitude":37.61874,"height":-27.32},{"longitude":-122.39027,"latitude":37.61884,"height":-27.32},{"longitude":-122.39057,"latitude":37.61898,"height":-27.32},{"longitude":-122.39091,"latitude":37.61912,"height":-27.32},{"longitude":-122.39053,"latitude":37.61779,"height":-27.32}]');
 
 
-              const flightData = [
+              const flightData2 = [
                 { "longitude": -122.39053, "latitude": 37.61779, "height": -27.32, "time": 0 },
                 { "longitude": -122.39035, "latitude": 37.61803, "height": -27.32, "time": 3 },
                 // Add more coordinates as needed, each with a 'time' attribute in seconds
@@ -183,9 +183,11 @@ import scoreData from './scoredata.json';
                     uri: objectFilename,
                     scale: 50
                   },
-                  position: Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height) // Initial position
- 
-                 
+                  position: Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height), // Initial position
+                  // forward: new Cesium.Cartesian3(1, 0, 0), // Set initial forward direction of the model
+                  // up: Cesium.Cartesian3.clone(Cesium.Cartesian3.UNIT_Z) // Set initial up direction of the model
+               
+                  orientation: new Cesium.VelocityOrientationProperty(positionProperty),
                   
                 });
                 var id = tempsheetObject.Id;
@@ -248,27 +250,61 @@ import scoreData from './scoredata.json';
     onComplete(sheet_arrayObject);
 
 
-    function animateModel(modelEntity) {
-      for (let i = 1; i < flightData.length; i++) {
-        const startPosition = Cesium.Cartesian3.fromDegrees(flightData[i - 1].longitude, flightData[i - 1].latitude, flightData[i - 1].height);
-        const endPosition = Cesium.Cartesian3.fromDegrees(flightData[i].longitude, flightData[i].latitude, flightData[i].height);
-        const duration = (flightData[i].time - flightData[i - 1].time) * 5000; // Time in milliseconds
 
-        // Use Tween.js to animate the model's position
-        new TWEEN.Tween({ x: startPosition.x, y: startPosition.y, z: startPosition.z })
-          .to({
-            x: endPosition.x,
-            y: endPosition.y,
-            z: endPosition.z
-          }, duration)
-          .easing(TWEEN.Easing.Linear.None)
-          .onUpdate(function(obj) {
-            modelEntity.position = new Cesium.Cartesian3(obj.x, obj.y, obj.z); // Update the model's position
-            console.log(modelEntity.position);
-          })
-          .start();
-      }
+
+ // Function to animate the model along flight data using Tween.js
+ function animateModel(modelEntity) {
+  let currentIndex = 0;
+  const duration = 2000; // Assuming a fixed duration of 2000 milliseconds for each transition
+
+  function tweenNext() {
+    if (currentIndex < flightData.length - 1) {
+      const startPosition = Cesium.Cartesian3.fromDegrees(flightData[currentIndex].longitude, flightData[currentIndex].latitude, flightData[currentIndex].height);
+      const endPosition = Cesium.Cartesian3.fromDegrees(flightData[currentIndex + 1].longitude, flightData[currentIndex + 1].latitude, flightData[currentIndex + 1].height);
+
+      const direction = Cesium.Cartesian3.subtract(endPosition, startPosition, new Cesium.Cartesian3());
+      Cesium.Cartesian3.normalize(direction, direction);
+
+      new TWEEN.Tween({ x: startPosition.x, y: startPosition.y, z: startPosition.z })
+        .to({
+          x: endPosition.x,
+          y: endPosition.y,
+          z: endPosition.z
+        }, duration)
+        .easing(TWEEN.Easing.Linear.None)
+        .onUpdate(function(obj) {
+          modelEntity.position = new Cesium.Cartesian3(obj.x, obj.y, obj.z); // Update the model's position
+
+          // Calculate the orientation based on the direction of movement
+          const heading = Math.atan2(direction.y, direction.x);
+          const pitch = 0; // Assuming level flight
+          const roll = 0; // Assuming no roll
+
+          // Orient the model in the direction of movement
+          const orientation = Cesium.Transforms.headingPitchRollQuaternion(endPosition, new Cesium.HeadingPitchRoll(heading, pitch, roll));
+          modelEntity.orientation = orientation;
+        })
+        .onComplete(() => {
+          currentIndex++;
+          tweenNext(); // Continue to the next point
+        })
+        .start();
     }
+  }
+
+  // Start animation
+  tweenNext();
+}
+
+
+
+
+
+
+
+
+
+
  // Update Tween.js
  function animate() {
   requestAnimationFrame(animate);
