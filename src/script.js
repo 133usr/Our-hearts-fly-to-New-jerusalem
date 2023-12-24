@@ -250,10 +250,8 @@ import scoreData from './scoredata.json';
     onComplete(sheet_arrayObject);
 
 
-
-
- // Function to animate the model along flight data using Tween.js
- function animateModel(modelEntity) {
+// Function to animate the model along flight data using Tween.js
+function animateModel(modelEntity) {
   let currentIndex = 0;
   const duration = 2000; // Assuming a fixed duration of 2000 milliseconds for each transition
 
@@ -262,6 +260,7 @@ import scoreData from './scoredata.json';
       const startPosition = Cesium.Cartesian3.fromDegrees(flightData[currentIndex].longitude, flightData[currentIndex].latitude, flightData[currentIndex].height);
       const endPosition = Cesium.Cartesian3.fromDegrees(flightData[currentIndex + 1].longitude, flightData[currentIndex + 1].latitude, flightData[currentIndex + 1].height);
 
+      // Calculate the direction vector from start to end position
       const direction = Cesium.Cartesian3.subtract(endPosition, startPosition, new Cesium.Cartesian3());
       Cesium.Cartesian3.normalize(direction, direction);
 
@@ -275,14 +274,12 @@ import scoreData from './scoredata.json';
         .onUpdate(function(obj) {
           modelEntity.position = new Cesium.Cartesian3(obj.x, obj.y, obj.z); // Update the model's position
 
-          // Calculate the orientation based on the direction of movement
-          const heading = Math.atan2(direction.y, direction.x);
-          const pitch = 0; // Assuming level flight
-          const roll = 0; // Assuming no roll
+          // Calculate the orientation based on the direction of movement using VelocityOrientationProperty
+          const velocityOrientation = new Cesium.VelocityOrientationProperty(new Cesium.SampledPositionProperty());
+          velocityOrientation.position.addSample(Cesium.JulianDate.now(), startPosition);
+          velocityOrientation.position.addSample(Cesium.JulianDate.addSeconds(Cesium.JulianDate.now(), 1.0, new Cesium.JulianDate()), endPosition);
 
-          // Orient the model in the direction of movement
-          const orientation = Cesium.Transforms.headingPitchRollQuaternion(endPosition, new Cesium.HeadingPitchRoll(heading, pitch, roll));
-          modelEntity.orientation = orientation;
+          modelEntity.orientation = velocityOrientation.getValue(Cesium.JulianDate.now());
         })
         .onComplete(() => {
           currentIndex++;
@@ -297,8 +294,15 @@ import scoreData from './scoredata.json';
 }
 
 
-
-
+// Function to calculate heading angle from a direction vector
+function calculateHeading(direction) {
+  const eastNorthUp = new Cesium.Ellipsoid(0, 0, 0); // Create an ENU (East-North-Up) coordinate system
+  const headingPitchRoll = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.ZERO, eastNorthUp);
+  const rotation = Cesium.Quaternion.fromRotationMatrix(headingPitchRoll);
+  const transformedDirection = Cesium.Matrix3.multiplyByVector(Cesium.Matrix3.fromQuaternion(rotation), direction, new Cesium.Cartesian3());
+  const heading = Math.atan2(transformedDirection.y, transformedDirection.x);
+  return heading;
+}
 
 
 
