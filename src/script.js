@@ -181,15 +181,18 @@ import scoreData from './scoredata.json';
                       
                         model: {
                           uri: objectFilename,
-                          scale: 50
+                          scale: 50,
+                          minimumPixelSize: 32,
                         },
                                       
                         // orientation: new Cesium.VelocityOrientationProperty(positionProperty),
                         
                       });
                       var id = tempsheetObject.Id;
-                    
-                      animateModel(airplaneEntity,tempsheetObject.Total);
+                      //let's calculate height by age group
+                      let height_by_group = calculate_height_by_group(tempsheetObject.group);
+                      //animate the model
+                      animateModel(airplaneEntity,tempsheetObject.Total,height_by_group);
                     // Assign an ID to the loaded model entity
                     loadedModels[id] = airplaneEntity;
                 
@@ -219,19 +222,13 @@ import scoreData from './scoredata.json';
                     [name_participant]: function () {
                       const entity = loadedModels[tempsheetObject.Id];
                       if (entity) {
-                        // viewer.trackedEntity = entity;
-                        console.log(" "+timeElapsed());
-                        if (timeElapsed()>10)
-                            {flyToModel(entity)
-                              .then(() => {
-                                // Code to execute after the flyToModel function is complete
-                                console.log('Executing code after flyToModel function');
-                                flyToModel(entity);
-                              })
-                              .catch((error) => {
-                                console.error('Error:', error.message);
-                                // Handle any potential errors
-                              });
+                        if (timeElapsed()>1)
+                            {   viewer.trackedEntity = undefined;
+                              flyToModel(entity).then(() => {// using promise to call this function twice by itself 
+                                flyToModel(entity).then(() => {// using promise to call this function twice by itself 
+                                  viewer.trackedEntity = entity;
+                                }).catch((error) => {console.error('Error:', error.message);});
+                              }).catch((error) => {console.error('Error:', error.message);});
                             }
                         else 
                             flyToModelWhile_Moving(entity);
@@ -318,7 +315,7 @@ function flyToModel2(entity) {
 function flyToModel(entity) {
   return new Promise((resolve, reject) => {
     const modelPosition = entity.position.getValue(Cesium.JulianDate.now()); // Get the position of the model
-
+   
     if (Cesium.defined(modelPosition)) {
       const flightDuration = 3.0; // Duration of the flight animation in seconds
 
@@ -337,11 +334,14 @@ function flyToModel(entity) {
         orientation: {
           direction: endOrientation,
           up: viewer.camera.up,
+          roll: 0,
+          pitch: 0,
         },
         duration: flightDuration,
         complete: function () {
           // Optionally, you can perform actions once the flight animation is complete
           console.log('Camera flight animation complete!');
+       
           resolve(); // Resolve the promise when animation is complete
         },
       });
@@ -350,29 +350,6 @@ function flyToModel(entity) {
     }
   });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -447,7 +424,7 @@ function flyToModelWhile_Moving(entity) {
 
 
 // Function to animate the model along flight data using Tween.js
-function animateModel(modelEntity,totalScoreOfModel) {
+function animateModel(modelEntity,totalScoreOfModel,height_by_group) {
   let currentIndex = 0;
   const duration = 2000; // Assuming a fixed duration of 2000 milliseconds for each transition
   let flightData_of_thisModel = [];
@@ -459,8 +436,8 @@ function animateModel(modelEntity,totalScoreOfModel) {
   flightData_of_thisModel = generateFlightData(totalScore_minus_5,totalScoreOfModel);
   function tweenNext() {
     if (currentIndex < flightData_of_thisModel.length - 1) {
-      const startPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex].longitude, flightData_of_thisModel[currentIndex].latitude, flightData_of_thisModel[currentIndex].height);
-      const endPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex + 1].longitude, flightData_of_thisModel[currentIndex + 1].latitude, flightData_of_thisModel[currentIndex + 1].height);
+      const startPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex].longitude, flightData_of_thisModel[currentIndex].latitude, height_by_group);
+      const endPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex + 1].longitude, flightData_of_thisModel[currentIndex + 1].latitude, height_by_group);
 
       // Calculate the direction vector from start to end position
       const direction = Cesium.Cartesian3.subtract(endPosition, startPosition, new Cesium.Cartesian3());
@@ -487,6 +464,7 @@ function animateModel(modelEntity,totalScoreOfModel) {
         .onComplete(() => {
           currentIndex++;
           tweenNext(); // Continue to the next point
+          upDownYOYO(modelEntity);
         })
         .start();
     }
@@ -495,6 +473,56 @@ function animateModel(modelEntity,totalScoreOfModel) {
   // Start animation
   tweenNext();
 }
+
+
+function calculate_height_by_group(ageGroup){
+
+  let minim,max;
+  if (ageGroup === 'Isaac') 
+      { minim = 11000; max = 12000;}
+  else if(ageGroup==='Immanuel')
+      { minim = 10000; max = 11000;}
+
+  else if(ageGroup==='Ruth')
+      { minim = 9000; max = 10000;}
+
+  else if(ageGroup==='Sarah')
+      { minim = 8000; max = 9000;}
+
+  else if(ageGroup==='Esther')
+      { minim = 7000; max = 8000;}
+
+  else if(ageGroup==='Y & St. Brother')
+      { minim = 6000; max = 7000;}
+  
+  else if(ageGroup==='Y & St. Sister')
+      { minim = 5000; max = 6000;}
+
+  else if(ageGroup==='Pandesra')
+      { minim = 8000; max = 7000;}
+
+  
+  return Math.floor(Math.random() * (max - minim + 1)) + minim;
+}
+
+
+// up and donw for animation
+function upDownYOYO(modelEntity) {
+  var startPosition = modelEntity.position.getValue(Cesium.JulianDate.now());
+  var endPosition = Cesium.Cartesian3.add(startPosition, new Cesium.Cartesian3(0, 10, 10), new Cesium.Cartesian3()); // Move up by 100 units
+
+  // Use Tween.js to animate the position
+  new TWEEN.Tween(startPosition)
+      .to(endPosition, 10000) // Animation duration: 2000 milliseconds
+      .easing(TWEEN.Easing.Quadratic.InOut) // Use a specific easing function if needed
+      .onUpdate(function() {
+          modelEntity.position.setValue(startPosition);
+      })
+      .repeat(Infinity) // Repeat the animation indefinitely
+      .yoyo(true) // Alternate between the start and end positions
+      .start();
+}
+
 
 
  // Update Tween.js
