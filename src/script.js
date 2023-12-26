@@ -62,7 +62,8 @@ import scoreData from './scoredata.json';
                   
                   if (groupType != "Group")
                   //  await myPromise(tempsheetObject);     //****************very important Uncomment this to run */
-                   { loadModels(tempsheetObject);
+                   { if(tempsheetObject.Total>0) // only load model and list the names ******* if the score is not 0
+                   {loadModels(tempsheetObject);}
                   }
                   
                    if (groupType == "Group")
@@ -98,13 +99,14 @@ import scoreData from './scoredata.json';
         var a_sis_folder = gui.addFolder('Adult Sisters');
         var y_br_folder = gui.addFolder('Youth & Stud. Brothers');
         var y_sis_folder = gui.addFolder('Youth & Stud. Sisters');
+        var pandesra_group = gui.addFolder('Pandesra');
         var group_folder = gui.addFolder('By Group');
 
-        var a_br_folder_group1 = a_br_folder.addFolder('Group1');
-        var a_br_folder_group2 = a_br_folder.addFolder('Group2');
-        var a_sis_folder_group1 = a_sis_folder.addFolder('Group1');
-        var a_sis_folder_group2 = a_sis_folder.addFolder('Group2');
-        var a_sis_folder_group3 = a_sis_folder.addFolder('Group3');
+        var a_br_folder_group1 = a_br_folder.addFolder('Isaac');
+        var a_br_folder_group2 = a_br_folder.addFolder('Immanuel');
+        var a_sis_folder_group1 = a_sis_folder.addFolder('Ruth');
+        var a_sis_folder_group2 = a_sis_folder.addFolder('Sarah');
+        var a_sis_folder_group3 = a_sis_folder.addFolder('Esther');
         //   var y_br_folder_group2 = a_br_folder.addFolder('Group2');
         const scoreBoard = {
             
@@ -143,8 +145,7 @@ import scoreData from './scoredata.json';
         
         let positionProperty = new Cesium.SampledPositionProperty();
 
-
-
+       
 
         flightData.forEach(({ longitude, latitude, height }) => {
           const time = Cesium.JulianDate.now(); // You might need to adjust the time for each sample
@@ -169,96 +170,112 @@ import scoreData from './scoredata.json';
         // Initialize camerOnClick object
 
         const loadedModels = {};
-
-        const loadModels = async (tempsheetObject) => {
-             
-            const objectFilename = './assets/glb/low-size/cartoon_plane.glb';
-         
-              const loadModel = async () => {
-                // positionProperty =  ;
-                let airplaneEntity = viewer.entities.add({
-                  // availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({ start, stop })]),
-                  // position: Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height),
-                  model: {
-                    uri: objectFilename,
-                    scale: 50
-                  },
-                  position: Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height), // Initial position
-                  // forward: new Cesium.Cartesian3(1, 0, 0), // Set initial forward direction of the model
-                  // up: Cesium.Cartesian3.clone(Cesium.Cartesian3.UNIT_Z) // Set initial up direction of the model
-               
-                  orientation: new Cesium.VelocityOrientationProperty(positionProperty),
+        
+              const loadModels = async (tempsheetObject) => {
                   
-                });
-                var id = tempsheetObject.Id;
-               
-                animateModel(airplaneEntity);
-              // Assign an ID to the loaded model entity
-              loadedModels[id] = airplaneEntity;
-                                
+                  const objectFilename = './assets/glb/low-size/cartoon_plane.glb';
               
+                    const loadModel = async () => {
+                      // positionProperty =  ;
+                      let airplaneEntity = viewer.entities.add({
+                      
+                        model: {
+                          uri: objectFilename,
+                          scale: 50
+                        },
+                                      
+                        // orientation: new Cesium.VelocityOrientationProperty(positionProperty),
+                        
+                      });
+                      var id = tempsheetObject.Id;
+                    
+                      animateModel(airplaneEntity,tempsheetObject.Total);
+                    // Assign an ID to the loaded model entity
+                    loadedModels[id] = airplaneEntity;
+                
+                      // Fetch and parse animation data
+                      const response = await fetch(objectFilename);
+                      const blob = await response.blob();
+                      const animationSet = await AnimationParser.parseAnimationSetFromFile(blob);
+                      const animationPlayer = new AnimationPlayer(animationSet, airplaneEntity, 30);
+                      animationPlayer.loop_type = LOOP_TYPE.LOOP;
+                      animationPlayer.play();
+                      animationPlayer.speed = 2.0;
+                    };
+                                                  
+                                                      
+                    // Load the model
+                  await loadModel();
+                  var age_group = tempsheetObject.group;
+                  var name_participant = tempsheetObject.Participant;
+                  
+      
+                      
+                    // Define a function inside the object
+                  // const camerOnClick = {
+                  //   [name_participant]: function() {   console.log("Complete")         }
+                  // }
+                  const camerOnClick = {
+                    [name_participant]: function () {
+                      const entity = loadedModels[tempsheetObject.Id];
+                      if (entity) {
+                        viewer.trackedEntity = entity;
+                        console.log(`Camera focused on model with ID: ${tempsheetObject.Id}`);
+                      } else {
+                        console.log(`Model with ID ${tempsheetObject.Id} not found.`);
+                      }
+                    }
+                  };
 
 
-              
-                // Fetch and parse animation data
-                const response = await fetch(objectFilename);
-                const blob = await response.blob();
-                const animationSet = await AnimationParser.parseAnimationSetFromFile(blob);
-                const animationPlayer = new AnimationPlayer(animationSet, airplaneEntity, 30);
-                animationPlayer.loop_type = LOOP_TYPE.LOOP;
-                animationPlayer.play();
-                animationPlayer.speed = 2.0;
+                  // Add the camerOnClick function to a_br_folder_group1 in the GUI
+                  if (age_group === 'Isaac') {
+                    a_br_folder_group1.add(camerOnClick, name_participant);
+                    console.log(age_group);
+                  }
+                  else if(age_group==='Immanuel')
+                  a_br_folder_group2.add(camerOnClick, name_participant );
+
+                  else if(age_group==='Ruth')
+                  a_sis_folder_group1.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Sarah')
+                  a_sis_folder_group2.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Esther')
+                  a_sis_folder_group3.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Y & St. Brother')
+                  y_br_folder.add(camerOnClick, name_participant);
+                  
+                  else if(age_group==='Y & St. Sister')
+                  y_sis_folder.add(camerOnClick, name_participant);
+
+                  else if(age_group==='Pandesra')
+                  a_br_folder_group2.add(camerOnClick, name_participant);
+                  
+                
               };
-                                            
-                                                
-              // Load the model
-            await loadModel();
-            var age_group = tempsheetObject.group;
-            var name_participant = tempsheetObject.Participant;
             
- 
-            
-              console.log(" ");
-              
-              // Define a function inside the object
-            // const camerOnClick = {
-            //   [name_participant]: function() {   console.log("Complete")         }
-            // }
-            const camerOnClick = {
-              [name_participant]: function () {
-                const entity = loadedModels[tempsheetObject.Id];
-                if (entity) {
-                  viewer.trackedEntity = entity;
-                  console.log(`Camera focused on model with ID: ${tempsheetObject.Id}`);
-                } else {
-                  console.log(`Model with ID ${tempsheetObject.Id} not found.`);
-                }
-              }
-            };
-
-
-            // Add the camerOnClick function to a_br_folder_group1 in the GUI
-            if (age_group === 'Adult Brother1') {
-              a_br_folder_group1.add(camerOnClick, name_participant);
-              console.log(age_group);
-            }
-            
-          
-        };
-
 
     onComplete(sheet_arrayObject);
 
 
 // Function to animate the model along flight data using Tween.js
-function animateModel(modelEntity) {
+function animateModel(modelEntity,totalScoreOfModel) {
   let currentIndex = 0;
   const duration = 2000; // Assuming a fixed duration of 2000 milliseconds for each transition
-
+  let flightData_of_thisModel = [];
+  let totalScore_minus_5=totalScoreOfModel-5;
+  if(totalScoreOfModel<5) {
+        totalScore_minus_5 = 1;
+        
+        }
+  flightData_of_thisModel = generateFlightData(totalScore_minus_5,totalScoreOfModel);
   function tweenNext() {
-    if (currentIndex < flightData.length - 1) {
-      const startPosition = Cesium.Cartesian3.fromDegrees(flightData[currentIndex].longitude, flightData[currentIndex].latitude, flightData[currentIndex].height);
-      const endPosition = Cesium.Cartesian3.fromDegrees(flightData[currentIndex + 1].longitude, flightData[currentIndex + 1].latitude, flightData[currentIndex + 1].height);
+    if (currentIndex < flightData_of_thisModel.length - 1) {
+      const startPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex].longitude, flightData_of_thisModel[currentIndex].latitude, flightData_of_thisModel[currentIndex].height);
+      const endPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex + 1].longitude, flightData_of_thisModel[currentIndex + 1].latitude, flightData_of_thisModel[currentIndex + 1].height);
 
       // Calculate the direction vector from start to end position
       const direction = Cesium.Cartesian3.subtract(endPosition, startPosition, new Cesium.Cartesian3());
@@ -278,7 +295,8 @@ function animateModel(modelEntity) {
           const velocityOrientation = new Cesium.VelocityOrientationProperty(new Cesium.SampledPositionProperty());
           velocityOrientation.position.addSample(Cesium.JulianDate.now(), startPosition);
           velocityOrientation.position.addSample(Cesium.JulianDate.addSeconds(Cesium.JulianDate.now(), 1.0, new Cesium.JulianDate()), endPosition);
-
+          // Set interpolation options for smoother transitions
+          
           modelEntity.orientation = velocityOrientation.getValue(Cesium.JulianDate.now());
         })
         .onComplete(() => {
@@ -294,21 +312,6 @@ function animateModel(modelEntity) {
 }
 
 
-// Function to calculate heading angle from a direction vector
-function calculateHeading(direction) {
-  const eastNorthUp = new Cesium.Ellipsoid(0, 0, 0); // Create an ENU (East-North-Up) coordinate system
-  const headingPitchRoll = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.ZERO, eastNorthUp);
-  const rotation = Cesium.Quaternion.fromRotationMatrix(headingPitchRoll);
-  const transformedDirection = Cesium.Matrix3.multiplyByVector(Cesium.Matrix3.fromQuaternion(rotation), direction, new Cesium.Cartesian3());
-  const heading = Math.atan2(transformedDirection.y, transformedDirection.x);
-  return heading;
-}
-
-
-
-
-
-
  // Update Tween.js
  function animate() {
   requestAnimationFrame(animate);
@@ -316,8 +319,39 @@ function calculateHeading(direction) {
 }
 animate();
 
-        // Start the model animation using tweens
-       
+    
+
+
+
+
+
+
+
+//lets get the scoreboard data
+
+
+// Function to generate flightData based on a specific range (1 to 5 in this case)
+function generateFlightData(startIndex, endIndex) {
+  const flightData5 = [];
+  for (let i = startIndex; i <= endIndex; i++) {
+    if (scoreData["SCOREbyLOCATION"][i]) {
+      flightData5.push({
+        latitude: scoreData["SCOREbyLOCATION"][i].latitude,
+        longitude: scoreData["SCOREbyLOCATION"][i].longitude
+      });
+    }
+  }
+  return flightData5;
+}
+
+
+
+
+
+
+
+
+
 
 
 

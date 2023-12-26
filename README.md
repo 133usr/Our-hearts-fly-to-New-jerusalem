@@ -44,6 +44,10 @@ Adult Brothers  random number from 11000-12000
 Youth brothers random number from 11000-12000
 
 
+## HOW TO HANDLE SCORES 
+Okay so when I wanted to move the model I have this file named scored data.JSON and it has all the longitudes and latitude of the map along with the properties that is the numbers and the numbers will be scores so when I'm going to do is 
+I am going to access those numbers for example like if someone has score of 500 km then he will be getting the number something like 6 or 7 according to his score and when the number is retrieved from the Google sheet then I am going to take that and in a function I will call a temporary Array for the flight data the number will be subtracted by 5 so I can get the flight data of it 
+if the number is 7 then I get from 2 to 7 and the plane will fly from the longitude and latitude of the number 2 to the longitude and latitude of the number 7 
 
 
 
