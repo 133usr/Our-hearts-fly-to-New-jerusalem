@@ -219,7 +219,23 @@ import scoreData from './scoredata.json';
                     [name_participant]: function () {
                       const entity = loadedModels[tempsheetObject.Id];
                       if (entity) {
-                        viewer.trackedEntity = entity;
+                        // viewer.trackedEntity = entity;
+                        console.log(" "+timeElapsed());
+                        if (timeElapsed()>10)
+                            {flyToModel(entity)
+                              .then(() => {
+                                // Code to execute after the flyToModel function is complete
+                                console.log('Executing code after flyToModel function');
+                                flyToModel(entity);
+                              })
+                              .catch((error) => {
+                                console.error('Error:', error.message);
+                                // Handle any potential errors
+                              });
+                            }
+                        else 
+                            flyToModelWhile_Moving(entity);
+                        
                         console.log(`Camera focused on model with ID: ${tempsheetObject.Id}`);
                       } else {
                         console.log(`Model with ID ${tempsheetObject.Id} not found.`);
@@ -259,6 +275,175 @@ import scoreData from './scoredata.json';
             
 
     onComplete(sheet_arrayObject);
+
+
+    // Smoothly transition the camera to focus on the model's position
+// Assuming entity is your Cesium Entity representing the model you want to focus on
+
+
+// Function to smoothly transition the camera to focus on a specific model
+function flyToModel2(entity) {
+  const modelPosition = entity.position.getValue(Cesium.JulianDate.now()); // Get the position of the model
+
+  if (Cesium.defined(modelPosition)) {
+    const flightDuration = 3.0; // Duration of the flight animation in seconds
+
+    // Get the current camera position and orientation
+    const startPosition = viewer.camera.positionWC.clone();
+    const startOrientation = viewer.camera.directionWC.clone();
+
+    // Calculate the end position of the camera focusing on the model
+    const endPosition = Cesium.Cartesian3.add(modelPosition, new Cesium.Cartesian3(0, 0, 500), new Cesium.Cartesian3()); // Adjust the height as needed
+    const endOrientation = Cesium.Cartesian3.subtract(modelPosition, startPosition, new Cesium.Cartesian3());
+    Cesium.Cartesian3.normalize(endOrientation, endOrientation);
+
+    // Start the camera flight animation
+    viewer.camera.flyTo({
+      destination: endPosition,
+      orientation: {
+        direction: endOrientation,
+        up: viewer.camera.up,
+      },
+      duration: flightDuration,
+      complete: function () {
+        // Optionally, you can perform actions once the flight animation is complete
+        console.log('Camera flight animation complete!');
+      },
+    });
+  }
+}
+
+
+
+function flyToModel(entity) {
+  return new Promise((resolve, reject) => {
+    const modelPosition = entity.position.getValue(Cesium.JulianDate.now()); // Get the position of the model
+
+    if (Cesium.defined(modelPosition)) {
+      const flightDuration = 3.0; // Duration of the flight animation in seconds
+
+      // Get the current camera position and orientation
+      const startPosition = viewer.camera.positionWC.clone();
+      const startOrientation = viewer.camera.directionWC.clone();
+
+      // Calculate the end position of the camera focusing on the model
+      const endPosition = Cesium.Cartesian3.add(modelPosition, new Cesium.Cartesian3(0, 0, 500), new Cesium.Cartesian3()); // Adjust the height as needed
+      const endOrientation = Cesium.Cartesian3.subtract(modelPosition, startPosition, new Cesium.Cartesian3());
+      Cesium.Cartesian3.normalize(endOrientation, endOrientation);
+
+      // Start the camera flight animation
+      viewer.camera.flyTo({
+        destination: endPosition,
+        orientation: {
+          direction: endOrientation,
+          up: viewer.camera.up,
+        },
+        duration: flightDuration,
+        complete: function () {
+          // Optionally, you can perform actions once the flight animation is complete
+          console.log('Camera flight animation complete!');
+          resolve(); // Resolve the promise when animation is complete
+        },
+      });
+    } else {
+      reject(new Error('Model position is not defined'));
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Function to smoothly transition the camera to focus on a specific model and track its movement
+function flyToModelWhile_Moving(entity) {
+  const modelPosition = entity.position.getValue(Cesium.JulianDate.now()); // Get the initial position of the model
+
+  if (Cesium.defined(modelPosition)) {
+    const flightDuration = 3.0; // Duration of the flight animation in seconds
+
+    // Calculate the end position of the camera focusing on the model
+    const endPosition = Cesium.Cartesian3.add(modelPosition, new Cesium.Cartesian3(100, 0, 1000), new Cesium.Cartesian3()); // Adjust the height as needed
+
+    // Start the camera flight animation
+    viewer.camera.flyTo({
+      destination: endPosition,
+      duration: flightDuration,
+      complete: function () {
+        // Optionally, you can perform actions once the flight animation is complete
+        console.log('Camera flight animation complete!');
+
+        // Remove the onTick event listener to restore camera control
+        viewer.clock.onTick.removeEventListener(trackModel);
+        if (viewer.camera.controller) {
+          viewer.camera.controller.lookEventTypes = {
+            mouse: Cesium.CameraEventType.LEFT_DOWN,
+            touch: Cesium.CameraEventType.PINCH
+          };
+          viewer.camera.controller.lookResetEventTypes = {
+            mouse: Cesium.CameraEventType.RIGHT_UP,
+            touch: Cesium.CameraEventType.PINCH_END
+          };
+        viewer.camera.controller.enableRotate = true;
+        viewer.camera.controller.enableTilt = true;
+        viewer.camera.controller.enableTranslate = true;
+        viewer.camera.controller.enableZoom = true;
+        }
+      },
+    });
+
+    // Update the camera position to track the model continuously
+    function trackModel() {
+      const currentModelPosition = entity.position.getValue(Cesium.JulianDate.now()); // Get the current position of the model
+
+     
+
+      if (Cesium.defined(currentModelPosition)) {
+        // Update the camera position to track the model
+        const newPosition = Cesium.Cartesian3.add(currentModelPosition, new Cesium.Cartesian3(0, 0, 1000), new Cesium.Cartesian3()); // Adjust the height as needed
+        // Calculate the position slightly behind the model
+        const behindPosition = Cesium.Cartesian3.subtract(currentModelPosition, new Cesium.Cartesian3(0, 0, -50), new Cesium.Cartesian3()); // Adjust the distance as needed
+
+      
+        viewer.camera.setView({
+          destination: behindPosition,
+          orientation: {
+            heading: viewer.camera.heading,
+            pitch:  Cesium.Math.toRadians(-20),
+            roll: viewer.camera.roll
+          }
+        });
+      }
+    }
+
+    // Update the camera position to track the model continuously
+    viewer.clock.onTick.addEventListener(trackModel);
+  }
+}
+
+
 
 
 // Function to animate the model along flight data using Tween.js
@@ -347,7 +532,15 @@ function generateFlightData(startIndex, endIndex) {
 
 
 
+// Get the initial time when the page loads
+const initialTime = performance.now();
 
+// Function to calculate time elapsed since page load
+function timeElapsed() {
+  const currentTime = performance.now();
+  const elapsedTimeInSeconds = (currentTime - initialTime) / 1000; // Convert milliseconds to seconds
+  return elapsedTimeInSeconds;
+}
 
 
 
