@@ -1,9 +1,9 @@
 ## THANKS TO GOD ELOHIM
-This project was bootstrapped with [Webpack](https://github.com/webpack/webpack).
-First of all this project is based on CPSIUN JS
+First of all this project is based on CESIUM JS
 
 So I went to theflightaware.com go the flight name from there like from delhi to korea
-then I searched that flight on https://globe.adsbexchange.com/  or better option is https://www.flightaware.com/live/flight/CPA640/history/20231210/1740Z/VNKT/VHHH
+then I searched that flight on https://globe.adsbexchange.com/  or 
+## better option is https://www.flightaware.com/live/flight/CPA640/history/20231210/1740Z/VNKT/VHHH
 
 Surat to AHMEDABAD 
 AHMEDABAT TO DELHI
@@ -65,7 +65,4 @@ In the project directory, you can run:
 
 
 #### To-do
-- [ ] CENTER CAMERA ON MODEL WHEN NAME IS CLICKED 
-- [ ] increase dat.gui size and soft close
-- [ ] CHANGE renderer.setClearColor(0x131A3D, 1); COLOR BY DAY TIME
-- [ ] --
+
