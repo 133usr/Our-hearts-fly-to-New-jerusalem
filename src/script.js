@@ -20,7 +20,7 @@ import GUI from 'lil-gui';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
 import scoreData from './scoredata.json';
-
+import Hammer from 'hammerjs'; 
 // Use scoreData in your code
 
 
@@ -185,13 +185,15 @@ import scoreData from './scoredata.json';
                           minimumPixelSize: 32,
                         },
                         label: {
-                          text: 'Your Text Here', // Replace with the text you want to display
-                          font: '14px sans-serif', // Specify the font and size
+                          text: tempsheetObject.Participant, // Replace with the text you want to display
+                          font: '12px sans-serif', // Specify the font and size
                           fillColor: Cesium.Color.WHITE, // Set the text color
                           outlineColor: Cesium.Color.BLACK, // Set the outline color
                           outlineWidth: 2, // Set the outline width
                           style: Cesium.LabelStyle.FILL_AND_OUTLINE, // Specify the label style
-                          pixelOffset: new Cesium.Cartesian2(0, -50) // Offset the label from the model
+                          pixelOffset: new Cesium.Cartesian2(0, -50), // Offset the label from the model
+                          showBackground: true,
+                          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0.0,10000.0), //set the distance from the names can be seen
                       }
                                       
                         // orientation: new Cesium.VelocityOrientationProperty(positionProperty),
@@ -231,7 +233,7 @@ import scoreData from './scoredata.json';
                   const camerOnClick = {
                     [name_participant]: function () {
                       const entity = loadedModels[tempsheetObject.Id];
-                      console.log(" "+entity.id);
+                     
                       if (entity) {
                         scoreBox_CSS(tempsheetObject);
                         if (timeElapsed()>1)
@@ -597,17 +599,14 @@ function timeElapsed() {
 function scoreBox_CSS (tempsheetObject){ // NOT USING X AND Y
             
   var parti_name  = tempsheetObject.Participant;
-  var preach      = tempsheetObject.totalPreach;
-  var m_Preach    = tempsheetObject.totalPreach_m;
-  var bonus       = tempsheetObject.bonus;
-  var fruits       = tempsheetObject.totalFruits;
-  var total_score = tempsheetObject.Total;
-  var elohim_aca  = (tempsheetObject.totalSign+tempsheetObject.chap_complete);
+  var preach      = (tempsheetObject.totalPreach).toFixed(2);
+  var m_Preach    = (tempsheetObject.totalApp_visit).toFixed(2);
+  var fruits       = (tempsheetObject.totalFruits).toFixed(2);
+  var total_score = (tempsheetObject.Total).toFixed(2);
+  var elohim_aca  = (tempsheetObject.totalSign+tempsheetObject.chap_complete).toFixed(2);
 
   var text2 = document.createElement('container');
   text2.style.position = 'absolute';
-  //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-  // text2.style.width = 100;
   text2.classList.add('animated-border-box-glow');
   text2.classList.add('animated-border-box');
   text2.classList.add('center-box');
@@ -615,11 +614,11 @@ function scoreBox_CSS (tempsheetObject){ // NOT USING X AND Y
   // text2.style.height = 100;
   // text2.style.backgroundColor = "blue";
   text2.innerHTML = "<p class='titles' > नाम: <f class='score' style = 'alight-right:100%'>"+parti_name+"</f></p>";
-  text2.innerHTML += "<p class='titles' > सा.प्रचार(B.km): <f class='score' style = 'alight-right:100%'>"+preach+"</f></p>";
-  text2.innerHTML += "<p class='titles' > अ.प्रचार(B.km): <f class='score' style = 'alight-right:100%'>"+m_Preach+"</f></p>";
-  text2.innerHTML += "<p class='titles' > फल(B.km): <f class='score' style = 'alight-right:100%'>"+fruits+"</f></p>";
-  text2.innerHTML += "<p class='titles' > एलोहिम अका.(B.km): <f class='score' style = 'alight-right:100%'>"+elohim_aca+"</f></p>";
-  text2.innerHTML += "<p class='titles' > Total Score(B.km): <f class='score' style = 'alight-right:100%'>"+total_score+"</f></p>";
+  text2.innerHTML += "<p class='titles' > सा.प्रचार: <f class='score' style = 'alight-right:100%'>"+preach+"km</f></p>";
+  text2.innerHTML += "<p class='titles' > अप्पोइ&विजि: <f class='score' style = 'alight-right:100%'>"+m_Preach+"km</f></p>";
+  text2.innerHTML += "<p class='titles' > फल: <f class='score' style = 'alight-right:100%'>"+fruits+"km</f></p>";
+  text2.innerHTML += "<p class='titles' > एलोहिम अका.: <f class='score' style = 'alight-right:100%'>"+elohim_aca+"km</f></p>";
+  text2.innerHTML += "<p class='titles' > Total Score: <f class='score' style = 'alight-right:100%'>"+total_score+"km</f></p>";
   
   text2.style.bottom = 0 + 'px';
   // text2.style.center = 0 + 'px';
@@ -637,19 +636,32 @@ function scoreBox_CSS (tempsheetObject){ // NOT USING X AND Y
       });
       var cesiumContainer = document.getElementById("cesiumContainer");
       cesiumContainer.addEventListener('click', function(event) {
-        console.log('Clicked on cesiumContainer!');
-        document.querySelectorAll("container")[0].remove();
-        document.querySelectorAll(".title")[0].click()  // toggle the lil-gui
+        var container = document.querySelectorAll("container")[0];
+        if(container != null)
+           {
+           document.querySelectorAll("container")[0].remove();
+           document.querySelectorAll(".title")[0].click()  // toggle the lil-gui
+           }
+       
     });
      
 }
 
+// Create an instance of Hammer and pass the Cesium viewer's container element
+const hammerHandler = new Hammer(viewer.canvas);
 
+// Function to handle double tap (double click) event
+function handleDoubleTap(event) {
+    // Check if it's a double tap event
+    if (event.tapCount === 2) {
+        // Handle the double tap action here
+        console.log('Double tap detected!');
+        viewer.trackedEntity = undefined;
+    }
+}
 
-
-
-
-
+// Add an event listener for double tap
+hammerHandler.on('doubletap', handleDoubleTap);
 
     /**************************************************************
      *                                                           *
