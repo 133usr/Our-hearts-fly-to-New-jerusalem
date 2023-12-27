@@ -193,7 +193,7 @@ import Hammer from 'hammerjs';
                           style: Cesium.LabelStyle.FILL_AND_OUTLINE, // Specify the label style
                           pixelOffset: new Cesium.Cartesian2(0, -50), // Offset the label from the model
                           showBackground: true,
-                          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0.0,10000.0), //set the distance from the names can be seen
+                          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0.0,50000.0), //set the distance from the names can be seen
                       }
                                       
                         // orientation: new Cesium.VelocityOrientationProperty(positionProperty),
@@ -640,7 +640,7 @@ function scoreBox_CSS (tempsheetObject){ // NOT USING X AND Y
         if(container != null)
            {
            document.querySelectorAll("container")[0].remove();
-           document.querySelectorAll(".title")[0].click()  // toggle the lil-gui
+         
            }
        
     });
