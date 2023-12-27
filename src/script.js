@@ -184,10 +184,20 @@ import scoreData from './scoredata.json';
                           scale: 50,
                           minimumPixelSize: 32,
                         },
+                        label: {
+                          text: 'Your Text Here', // Replace with the text you want to display
+                          font: '14px sans-serif', // Specify the font and size
+                          fillColor: Cesium.Color.WHITE, // Set the text color
+                          outlineColor: Cesium.Color.BLACK, // Set the outline color
+                          outlineWidth: 2, // Set the outline width
+                          style: Cesium.LabelStyle.FILL_AND_OUTLINE, // Specify the label style
+                          pixelOffset: new Cesium.Cartesian2(0, -50) // Offset the label from the model
+                      }
                                       
                         // orientation: new Cesium.VelocityOrientationProperty(positionProperty),
                         
                       });
+                  
                       var id = tempsheetObject.Id;
                       //let's calculate height by age group
                       let height_by_group = calculate_height_by_group(tempsheetObject.group);
@@ -221,7 +231,9 @@ import scoreData from './scoredata.json';
                   const camerOnClick = {
                     [name_participant]: function () {
                       const entity = loadedModels[tempsheetObject.Id];
+                      console.log(" "+entity.id);
                       if (entity) {
+                        scoreBox_CSS(tempsheetObject);
                         if (timeElapsed()>1)
                             {   viewer.trackedEntity = undefined;
                               flyToModel(entity).then(() => {// using promise to call this function twice by itself 
@@ -273,6 +285,15 @@ import scoreData from './scoredata.json';
 
     onComplete(sheet_arrayObject);
 
+     // Event listener to handle the click event on the model
+     viewer.selectedEntityChanged.addEventListener(function () {
+      const selectedEntity = viewer.selectedEntity;
+      if (selectedEntity) {
+        // Call the function to handle the model click event
+        // handleModelClick(selectedEntity.id); // Pass the ID of the clicked model
+        console.log(" "+selectedEntity.id);
+      }
+    });
 
     // Smoothly transition the camera to focus on the model's position
 // Assuming entity is your Cesium Entity representing the model you want to focus on
@@ -426,7 +447,7 @@ function flyToModelWhile_Moving(entity) {
 // Function to animate the model along flight data using Tween.js
 function animateModel(modelEntity,totalScoreOfModel,height_by_group) {
   let currentIndex = 0;
-  const duration = 2000; // Assuming a fixed duration of 2000 milliseconds for each transition
+  const duration = 20000; // Assuming a fixed duration of 2000 milliseconds for each transition
   let flightData_of_thisModel = [];
   let totalScore_minus_5=totalScoreOfModel-5;
   if(totalScoreOfModel<5) {
@@ -573,7 +594,55 @@ function timeElapsed() {
 
 
 
+function scoreBox_CSS (tempsheetObject){ // NOT USING X AND Y
+            
+  var parti_name  = tempsheetObject.Participant;
+  var preach      = tempsheetObject.totalPreach;
+  var m_Preach    = tempsheetObject.totalPreach_m;
+  var bonus       = tempsheetObject.bonus;
+  var fruits       = tempsheetObject.totalFruits;
+  var total_score = tempsheetObject.Total;
+  var elohim_aca  = (tempsheetObject.totalSign+tempsheetObject.chap_complete);
 
+  var text2 = document.createElement('container');
+  text2.style.position = 'absolute';
+  //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+  // text2.style.width = 100;
+  text2.classList.add('animated-border-box-glow');
+  text2.classList.add('animated-border-box');
+  text2.classList.add('center-box');
+ 
+  // text2.style.height = 100;
+  // text2.style.backgroundColor = "blue";
+  text2.innerHTML = "<p class='titles' > नाम: <f class='score' style = 'alight-right:100%'>"+parti_name+"</f></p>";
+  text2.innerHTML += "<p class='titles' > सा.प्रचार(B.km): <f class='score' style = 'alight-right:100%'>"+preach+"</f></p>";
+  text2.innerHTML += "<p class='titles' > अ.प्रचार(B.km): <f class='score' style = 'alight-right:100%'>"+m_Preach+"</f></p>";
+  text2.innerHTML += "<p class='titles' > फल(B.km): <f class='score' style = 'alight-right:100%'>"+fruits+"</f></p>";
+  text2.innerHTML += "<p class='titles' > एलोहिम अका.(B.km): <f class='score' style = 'alight-right:100%'>"+elohim_aca+"</f></p>";
+  text2.innerHTML += "<p class='titles' > Total Score(B.km): <f class='score' style = 'alight-right:100%'>"+total_score+"</f></p>";
+  
+  text2.style.bottom = 0 + 'px';
+  // text2.style.center = 0 + 'px';
+  document.body.appendChild(text2);
+  $("container").click(function(){
+      //clicked on the box
+       //remove box
+       var container = document.querySelectorAll("container")[0];
+       if(container != null)
+          {
+          document.querySelectorAll("container")[0].remove();
+          document.querySelectorAll(".title")[0].click()  // toggle the lil-gui
+          }
+   
+      });
+      var cesiumContainer = document.getElementById("cesiumContainer");
+      cesiumContainer.addEventListener('click', function(event) {
+        console.log('Clicked on cesiumContainer!');
+        document.querySelectorAll("container")[0].remove();
+        document.querySelectorAll(".title")[0].click()  // toggle the lil-gui
+    });
+     
+}
 
 
 
