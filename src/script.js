@@ -89,30 +89,38 @@ import Hammer from 'hammerjs';
           closeFolders : true,
           autoPlace: true, //autoPlace - Adds the GUI to document.body and fixes it to the top right of the page.
           title: 'Participants',
-
           
 
         }); 
         
 
-        var a_br_folder = gui.addFolder('Adult Brothers');
-        var a_sis_folder = gui.addFolder('Adult Sisters');
-        var y_br_folder = gui.addFolder('Youth & Stud. Brothers');
-        var y_sis_folder = gui.addFolder('Youth & Stud. Sisters');
-        var pandesra_group = gui.addFolder('Pandesra');
-        var group_folder = gui.addFolder('By Group');
+        var a_br_folder = gui.addFolder('विवाहित भाई');
+        var a_sis_folder = gui.addFolder('विवाहित बहन');
+        var y_br_folder = gui.addFolder('युवा और छात्र भाई');
+        var y_sis_folder = gui.addFolder('युवा और छात्र बहन');
+        var pandesra_group = gui.addFolder('पांडेसरा');
+        var group_folder = gui.addFolder('विवाहित बहन');
 
-        var a_br_folder_group1 = a_br_folder.addFolder('Isaac');
-        var a_br_folder_group2 = a_br_folder.addFolder('Immanuel');
-        var a_sis_folder_group1 = a_sis_folder.addFolder('Ruth');
-        var a_sis_folder_group2 = a_sis_folder.addFolder('Sarah');
-        var a_sis_folder_group3 = a_sis_folder.addFolder('Esther');
+        var a_br_folder_group1 = a_br_folder.addFolder('इसहाक');
+        var a_br_folder_group2 = a_br_folder.addFolder('इम्मानुएल');
+        var a_sis_folder_group1 = a_sis_folder.addFolder('रूत');
+        var a_sis_folder_group2 = a_sis_folder.addFolder('सराह');
+        var a_sis_folder_group3 = a_sis_folder.addFolder('एस्तेर');
         //   var y_br_folder_group2 = a_br_folder.addFolder('Group2');
+
         const scoreBoard = {
             
-          Scoreboard: function() { window.location.href = './scoreboard_code/score_board.html' }
+          स्कोरबोर्ड: function() { window.location.href = './scoreboard_code/score_board.html' }
         }
-            gui.add(scoreBoard,'Scoreboard');
+            gui.add(scoreBoard,'स्कोरबोर्ड');
+
+
+
+
+
+
+
+
 
 
             const flightData = JSON.parse(
@@ -126,8 +134,11 @@ import Hammer from 'hammerjs';
               ];
 
         let airplaneEntity;
-
-        const  viewer = new Cesium.Viewer('cesiumContainer', {
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3MjAyYjg4NC02NzM0LTQxOGMtOGNhOC0wZDYxN2Q4ZTA2YmEiLCJpZCI6MTgzODk5LCJpYXQiOjE3MDIzNTg1ODd9.ti2Hyf1LxJL3UPbXCUwuIz8So9DCU3Uwovqm-FN0gxI';
+        const  viewer = new Cesium.Viewer('cesiumContainer', 
+        {
+         
+        
           animation: false,
           shouldAnimate: true, // Ensure animation is enabled
           baseLayerPicker: false,
@@ -139,13 +150,35 @@ import Hammer from 'hammerjs';
           
           // timeline: false
           });
-
+          viewer.scene.setTerrain(
+            new Cesium.Terrain(Cesium.CesiumTerrainProvider.fromIonAssetId(1))
+          );
+          viewer.scene.globe.terrainExaggeration = 9.0;
           viewer.scene.globe.enableLighting = true;
+          
+                    
+        let isLayerVisible = false;
+        let baseLayer;
 
+        const layerCheckbox = gui.add({ visibility: isLayerVisible }, 'visibility').name('नक्शे का नाम');
+        function toggleBaseLayerVisibility() {
+            if (!baseLayer) {
+                // Create the Cesium Imagery Layer for the base layer
+                baseLayer = 
+                    Cesium.ImageryLayer.fromWorldImagery({
+                        style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS,
+                    });
+                    viewer.imageryLayers.add(baseLayer);
+            }
+            isLayerVisible = !isLayerVisible;
+            if (baseLayer) {
+                baseLayer.show = isLayerVisible;
+            }
+        }
+        layerCheckbox.onChange(toggleBaseLayerVisibility);
         
-        let positionProperty = new Cesium.SampledPositionProperty();
 
-       
+        let positionProperty = new Cesium.SampledPositionProperty();
 
         flightData.forEach(({ longitude, latitude, height }) => {
           const time = Cesium.JulianDate.now(); // You might need to adjust the time for each sample
