@@ -123,15 +123,9 @@ import Hammer from 'hammerjs';
 
 
 
-            const flightData = JSON.parse(
-              '[{"longitude":-122.39053,"latitude":37.61779,"height":-27.32},{"longitude":-122.39035,"latitude":37.61803,"height":-27.32},{"longitude":-122.39019,"latitude":37.61826,"height":-27.32},{"longitude":-122.39006,"latitude":37.6185,"height":-27.32},{"longitude":-122.38985,"latitude":37.61864,"height":-27.32},{"longitude":-122.39005,"latitude":37.61874,"height":-27.32},{"longitude":-122.39027,"latitude":37.61884,"height":-27.32},{"longitude":-122.39057,"latitude":37.61898,"height":-27.32},{"longitude":-122.39091,"latitude":37.61912,"height":-27.32},{"longitude":-122.39053,"latitude":37.61779,"height":-27.32}]');
+            // const flightData = JSON.parse(
+            //   '[{"longitude":-122.39053,"latitude":37.61779,"height":-27.32},{"longitude":-122.39035,"latitude":37.61803,"height":-27.32},{"longitude":-122.39019,"latitude":37.61826,"height":-27.32},{"longitude":-122.39006,"latitude":37.6185,"height":-27.32},{"longitude":-122.38985,"latitude":37.61864,"height":-27.32},{"longitude":-122.39005,"latitude":37.61874,"height":-27.32},{"longitude":-122.39027,"latitude":37.61884,"height":-27.32},{"longitude":-122.39057,"latitude":37.61898,"height":-27.32},{"longitude":-122.39091,"latitude":37.61912,"height":-27.32},{"longitude":-122.39053,"latitude":37.61779,"height":-27.32}]');
 
-
-              const flightData2 = [
-                { "longitude": -122.39053, "latitude": 37.61779, "height": -27.32, "time": 0 },
-                { "longitude": -122.39035, "latitude": 37.61803, "height": -27.32, "time": 3 },
-                // Add more coordinates as needed, each with a 'time' attribute in seconds
-              ];
 
         let airplaneEntity;
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3MjAyYjg4NC02NzM0LTQxOGMtOGNhOC0wZDYxN2Q4ZTA2YmEiLCJpZCI6MTgzODk5LCJpYXQiOjE3MDIzNTg1ODd9.ti2Hyf1LxJL3UPbXCUwuIz8So9DCU3Uwovqm-FN0gxI';
@@ -178,13 +172,13 @@ import Hammer from 'hammerjs';
         layerCheckbox.onChange(toggleBaseLayerVisibility);
         
 
-        let positionProperty = new Cesium.SampledPositionProperty();
+        // let positionProperty = new Cesium.SampledPositionProperty();
 
-        flightData.forEach(({ longitude, latitude, height }) => {
-          const time = Cesium.JulianDate.now(); // You might need to adjust the time for each sample
-          const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
-          positionProperty.addSample(time, position);
-        });
+        // flightData.forEach(({ longitude, latitude, height }) => {
+        //   const time = Cesium.JulianDate.now(); // You might need to adjust the time for each sample
+        //   const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+        //   positionProperty.addSample(time, position);
+        // });
 
 
 
@@ -206,14 +200,53 @@ import Hammer from 'hammerjs';
         
               const loadModels = async (tempsheetObject) => {
                   
-                  const objectFilename = './assets/glb/low-size/cartoon_plane.glb';
-              
+                  const objectFilename = './assets/glb/low-size/cartoon_Plane_pink.glb';
+                  let modelId_asset;
+                  var age_group = tempsheetObject.group;
+                  switch (true) {
+                    case age_group.includes('Isaac'):
+                          modelId_asset = '2408884';  
+                      break;
+                    
+                    case age_group.includes('Immanuel'):
+                          modelId_asset = '2408884';  
+                    break;
+
+                    case age_group.includes('Ruth'):
+                          modelId_asset = '2408886';  
+                      break;
+                    
+                    case age_group.includes('Sarah'):
+                         modelId_asset = '2408886';  
+                    break;
+                    
+                    case age_group.includes('Esther'):
+                         modelId_asset = '2408886';  
+                      break;
+                    
+                    case age_group.includes('Y & St. Brother'):
+                         modelId_asset = '2408887';  
+                    break;
+
+                    case age_group.includes('Y & St. Sister'):
+                         modelId_asset = '2408885';  
+                      break;
+                    
+                    case age_group.includes('Pandesra'):
+                         modelId_asset = '2408887';  
+                    break;
+                  
+                    default:
+                      modelId_asset = '2408887';  
+                      break;
+                  }
+                  const resource = await Cesium.IonResource.fromAssetId(modelId_asset);
                     const loadModel = async () => {
                       // positionProperty =  ;
                       let airplaneEntity = viewer.entities.add({
                       
                         model: {
-                          uri: objectFilename,
+                          uri: resource,
                           scale: 50,
                           minimumPixelSize: 32,
                         },
@@ -254,7 +287,7 @@ import Hammer from 'hammerjs';
                                                       
                     // Load the model
                   await loadModel();
-                  var age_group = tempsheetObject.group;
+                 
                   var name_participant = tempsheetObject.Participant;
                   
       
