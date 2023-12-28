@@ -172,16 +172,16 @@ import Hammer from 'hammerjs';
         layerCheckbox.onChange(toggleBaseLayerVisibility);
         
 
-        // let positionProperty = new Cesium.SampledPositionProperty();
-
-        // flightData.forEach(({ longitude, latitude, height }) => {
-        //   const time = Cesium.JulianDate.now(); // You might need to adjust the time for each sample
-        //   const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
-        //   positionProperty.addSample(time, position);
-        // });
-
-
-
+        // Set the camera view to focus on India
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(78.9629, 20.5937, 2000000.0), // Coordinates for India (longitude, latitude)
+          orientation: {
+              heading: Cesium.Math.toRadians(0.0), // Set desired heading in radians
+              pitch: Cesium.Math.toRadians(-90.0), // Set desired pitch in radians
+              roll: 0.0 // Set desired roll in radians
+          },
+          duration: 3 // Set the duration of the flight animation in seconds
+        });
 
 
         function hideCesiuminfo(){
@@ -268,20 +268,20 @@ import Hammer from 'hammerjs';
                   
                       var id = tempsheetObject.Id;
                       //let's calculate height by age group
-                      let height_by_group = calculate_height_by_group(tempsheetObject.group);
+                      let height_by_group = calculate_height_by_group(tempsheetObject.group,tempsheetObject.Total);
                       //animate the model
                       animateModel(airplaneEntity,tempsheetObject.Total,height_by_group);
                     // Assign an ID to the loaded model entity
                     loadedModels[id] = airplaneEntity;
                 
                       // Fetch and parse animation data
-                      const response = await fetch(objectFilename);
-                      const blob = await response.blob();
-                      const animationSet = await AnimationParser.parseAnimationSetFromFile(blob);
-                      const animationPlayer = new AnimationPlayer(animationSet, airplaneEntity, 30);
-                      animationPlayer.loop_type = LOOP_TYPE.LOOP;
-                      animationPlayer.play();
-                      animationPlayer.speed = 2.0;
+                      // const response = await fetch(resource);
+                      // const blob = await response.blob();
+                      // const animationSet = await AnimationParser.parseAnimationSetFromFile(blob);
+                      // const animationPlayer = new AnimationPlayer(animationSet, airplaneEntity, 30);
+                      // animationPlayer.loop_type = LOOP_TYPE.LOOP;
+                      // animationPlayer.play();
+                      // animationPlayer.speed = 2.0;
                     };
                                                   
                                                       
@@ -302,6 +302,7 @@ import Hammer from 'hammerjs';
                      
                       if (entity) {
                         scoreBox_CSS(tempsheetObject);
+                        document.querySelectorAll(".title")[0].click()  // toggle the lil-gui
                         if (timeElapsed()>1)
                             {   viewer.trackedEntity = undefined;
                               flyToModel(entity).then(() => {// using promise to call this function twice by itself 
@@ -515,7 +516,7 @@ function flyToModelWhile_Moving(entity) {
 // Function to animate the model along flight data using Tween.js
 function animateModel(modelEntity,totalScoreOfModel,height_by_group) {
   let currentIndex = 0;
-  const duration = 20000; // Assuming a fixed duration of 2000 milliseconds for each transition
+  const duration = 2000; // Assuming a fixed duration of 2000 milliseconds for each transition
   let flightData_of_thisModel = [];
   let totalScore_minus_5=totalScoreOfModel-5;
   if(totalScoreOfModel<5) {
@@ -527,6 +528,9 @@ function animateModel(modelEntity,totalScoreOfModel,height_by_group) {
     if (currentIndex < flightData_of_thisModel.length - 1) {
       const startPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex].longitude, flightData_of_thisModel[currentIndex].latitude, height_by_group);
       const endPosition = Cesium.Cartesian3.fromDegrees(flightData_of_thisModel[currentIndex + 1].longitude, flightData_of_thisModel[currentIndex + 1].latitude, height_by_group);
+
+      if(isNaN(flightData_of_thisModel[currentIndex].longitude)||isNaN(flightData_of_thisModel[currentIndex].latitude))
+      console.log("true nan");
 
       // Calculate the direction vector from start to end position
       const direction = Cesium.Cartesian3.subtract(endPosition, startPosition, new Cesium.Cartesian3());
@@ -553,10 +557,10 @@ function animateModel(modelEntity,totalScoreOfModel,height_by_group) {
         .onComplete(() => {
           currentIndex++;
           tweenNext(); // Continue to the next point
-          upDownYOYO(modelEntity);
+          // upDownYOYO(modelEntity);
         })
         .start();
-    }
+    }else{upDownYOYO(modelEntity);}
   }
 
   // Start animation
@@ -564,33 +568,38 @@ function animateModel(modelEntity,totalScoreOfModel,height_by_group) {
 }
 
 
-function calculate_height_by_group(ageGroup){
+function calculate_height_by_group(ageGroup,totalScore){
 
-  let minim,max;
-  if (ageGroup === 'Isaac') 
-      { minim = 11000; max = 12000;}
-  else if(ageGroup==='Immanuel')
-      { minim = 10000; max = 11000;}
+          let minim,max;
+          
+          totalScore = parseFloat(totalScore);
+          if (ageGroup === 'Isaac') 
+              { minim = 110; max = 120;}
+          else if(ageGroup==='Immanuel')
+              { minim = 100; max = 110;}
 
-  else if(ageGroup==='Ruth')
-      { minim = 9000; max = 10000;}
+          else if(ageGroup==='Ruth')
+              { minim = 90; max = 100;}
 
-  else if(ageGroup==='Sarah')
-      { minim = 8000; max = 9000;}
+          else if(ageGroup==='Sarah')
+              { minim = 80; max = 90;}
 
-  else if(ageGroup==='Esther')
-      { minim = 7000; max = 8000;}
+          else if(ageGroup==='Esther')
+              { minim = 70; max = 80;}
 
-  else if(ageGroup==='Y & St. Brother')
-      { minim = 6000; max = 7000;}
-  
-  else if(ageGroup==='Y & St. Sister')
-      { minim = 5000; max = 6000;}
+          else if(ageGroup==='Y & St. Brother')
+              { minim = 60; max = 70;}
+          
+          else if(ageGroup==='Y & St. Sister')
+              { minim = 50; max = 60;}
 
-  else if(ageGroup==='Pandesra')
-      { minim = 8000; max = 7000;}
+          else if(ageGroup==='Pandesra')
+              { minim = 80; max = 70;}
 
-  
+              minim = parseFloat(minim);
+              max = parseFloat(max);
+              minim = totalScore * minim;
+              max =  totalScore * max;  
   return Math.floor(Math.random() * (max - minim + 1)) + minim;
 }
 
